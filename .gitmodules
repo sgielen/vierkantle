@@ -1,0 +1,3 @@
+[submodule "contrib/opentaal-wordlist"]
+	path = contrib/opentaal-wordlist
+	url = git@github.com:OpenTaal/opentaal-wordlist.git
