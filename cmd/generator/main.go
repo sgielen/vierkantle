@@ -32,7 +32,9 @@ func main() {
 	attempts := 100
 	for attempt := 0; attempt < attempts; attempt++ {
 		board := vierkantle.NewBoard(boardWidth, boardHeight)
-		board.PrefillRandomly(niceWord)
+		if err := board.PrefillRandomly(niceWord); err != nil {
+			log.Fatal("That prefill word doesn't fit in the board :-(")
+		}
 		board.FillRandomly()
 
 		words := board.WordsInBoard(dictionary, 4)

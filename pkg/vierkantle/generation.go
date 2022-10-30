@@ -1,6 +1,7 @@
 package vierkantle
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -38,11 +39,15 @@ func (b *Board) Fill(c rune) {
 	}
 }
 
-func (b *Board) PrefillRandomly(word string) {
+func (b *Board) PrefillRandomly(word string) error {
 	path := b.randomPathWithLength(len(word), nil)
+	if path == nil {
+		return fmt.Errorf("the prefill word doesn't fit in the board :-(")
+	}
 	for i, c := range path {
 		b.Cells[c.X][c.Y] = rune(word[i])
 	}
+	return nil
 }
 
 func (b *Board) FillRandomly() {
