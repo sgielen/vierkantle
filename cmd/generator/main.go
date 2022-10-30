@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math"
 	"os"
 	"sort"
 
@@ -25,7 +26,7 @@ func main() {
 	}
 
 	var bestBoard *vierkantle.Board
-	var bestWords []string
+	var bestWords []vierkantle.WordInBoard
 	bestScore := 0
 
 	niceWord := "algoritmes"
@@ -38,9 +39,13 @@ func main() {
 		board.FillRandomly()
 
 		words := board.WordsInBoard(dictionary, 4)
+		if !board.AreAllCellsUsed(words) {
+			// nevermind, skip this board
+			continue
+		}
 		score := 0
-		for _, word := range words {
-			score += len(word) * len(word)
+		for _, wordInBoard := range words {
+			score += int(math.Pow(float64(len(wordInBoard.Word)), 3))
 		}
 		if score > bestScore {
 			bestBoard = board
@@ -59,7 +64,7 @@ func main() {
 	log.Printf("Analyzing board...")
 	wordsByLength := map[int][]string{}
 	for _, word := range words {
-		wordsByLength[len(word)] = append(wordsByLength[len(word)], word)
+		wordsByLength[len(word.Word)] = append(wordsByLength[len(word.Word)], word.Word)
 	}
 	var lengths []int
 	for len := range wordsByLength {
