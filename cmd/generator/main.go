@@ -59,8 +59,20 @@ func main() {
 	words := bestWords
 
 	log.Print("\n" + board.PrintBoard())
-	//log.Print("\n" + board.PrintBoardGo())
-	log.Print("\n" + board.PrintBoardJs())
+	log.Print("\n" + board.PrintBoardGo())
+
+	json, err := board.PrintBoardJson(words)
+	if err != nil {
+		log.Fatalf("failed to generate JSON for board: %s", err.Error())
+	}
+
+	if fh, err := os.OpenFile("board.json", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644); err != nil {
+		log.Fatalf("failed to open file to write JSON: %s", err.Error())
+	} else if _, err = fh.Write(json); err != nil {
+		log.Fatalf("failed to write JSON to file: %s", err.Error())
+	} else if err = fh.Close(); err != nil {
+		log.Fatalf("failed to close file: %s", err.Error())
+	}
 
 	log.Printf("Analyzing board...")
 	wordsByLength := map[int][]string{}

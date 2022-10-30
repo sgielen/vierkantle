@@ -43,21 +43,3 @@ func (b *Board) PrintBoardGo() string {
 	}
 	return res + "\n"
 }
-
-func (b *Board) PrintBoardJs() string {
-	res := "\n{\n"
-	res = res + fmt.Sprintf("  width: %d,\n", b.Width)
-	res = res + fmt.Sprintf("  height: %d,\n", b.Height)
-	res = res + "  cells: [\n"
-	for y := 0; y < b.Height; y++ {
-		res = res + "    ["
-		for x := 0; x < b.Width; x++ {
-			res = res + fmt.Sprintf("'%c', ", b.Cells[x][y])
-		}
-		res = res + "],\n"
-	}
-	res = res + "  ],\n"
-	res = res + "}\n"
-
-	return res
-}
