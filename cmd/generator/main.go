@@ -52,6 +52,7 @@ func main() {
 
 	log.Print("\n" + board.PrintBoard())
 	//log.Print("\n" + board.PrintBoardGo())
+	log.Print("\n" + board.PrintBoardJs())
 
 	log.Printf("Analyzing board...")
 	wordsByLength := map[int][]string{}
