@@ -29,8 +29,9 @@ func main() {
 	var bestWords []vierkantle.WordInBoard
 	bestScore := 0
 
+	log.Printf("Generating boards...")
 	niceWord := "algoritmes"
-	attempts := 100
+	attempts := 10000
 	for attempt := 0; attempt < attempts; attempt++ {
 		board := vierkantle.NewBoard(boardWidth, boardHeight)
 		if err := board.PrefillRandomly(niceWord); err != nil {
