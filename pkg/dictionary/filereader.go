@@ -14,9 +14,13 @@ func NewFileReader(file string) (WordReader, error) {
 	if err != nil {
 		return nil, err
 	}
+	return NewFileReaderFromHandle(fh), nil
+}
+
+func NewFileReaderFromHandle(fh *os.File) WordReader {
 	scanner := bufio.NewScanner(fh)
 	scanner.Split(bufio.ScanLines)
-	return &fileReader{scanner: scanner}, nil
+	return &fileReader{scanner: scanner}
 }
 
 func (f *fileReader) ReadWord() string {

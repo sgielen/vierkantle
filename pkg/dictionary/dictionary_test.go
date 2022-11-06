@@ -1,6 +1,9 @@
 package dictionary_test
 
 import (
+	"fmt"
+	"math/rand"
+	"strings"
 	"testing"
 
 	"github.com/go-test/deep"
@@ -109,5 +112,39 @@ func TestDictionary(t *testing.T) {
 		HasWordsWithPrefix: false,
 	}); diff != nil {
 		t.Fatal(diff)
+	}
+}
+
+type mockReader struct {
+	r       *rand.Rand
+	letters []rune
+}
+
+func (m *mockReader) ReadWord() string {
+	length := m.r.Intn(12)
+	res := strings.Builder{}
+	for ; length > 0; length-- {
+		res.WriteRune(m.letters[m.r.Intn(len(m.letters))])
+	}
+	return res.String()
+}
+
+var seeds = []int64{0, 1000, 2000, 5000}
+
+func BenchmarkDictionary(b *testing.B) {
+	for _, seed := range seeds {
+		reader := &mockReader{
+			r: rand.New(rand.NewSource(seed)),
+			letters: []rune{
+				'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+				'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+			},
+		}
+		b.Run(fmt.Sprintf("seed_%d", seed), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				dictionary := dictionary.NewPrefixDictionary(reader, 4, 12)
+				dictionary.HasWord("dictionaries")
+			}
+		})
 	}
 }
