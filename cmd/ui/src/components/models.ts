@@ -14,6 +14,7 @@ export interface WordInBoard {
 }
 
 export interface Board {
+  loadedAt?: string;
   width: number;
   height: number;
   cells: string[][];
