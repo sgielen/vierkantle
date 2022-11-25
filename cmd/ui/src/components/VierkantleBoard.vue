@@ -1,12 +1,21 @@
 <template>
-  <div class="container" :style="css" @mouseup="mouseup">
+  <div
+    class="container"
+    :style="css"
+    @mouseup="dragEnd"
+    @touchstart="touchEvent('start', $event)"
+    @touchmove="touchEvent('move', $event)"
+    @touchend="dragEnd"
+  >
     <div class="board">
       <template v-for="row, y in props.board.cells">
         <template v-for="cell, x in row" :key="x + ',' + y">
           <VierkantleCell
             :letter="cell"
-            @mouseover="mouseover(x, y, $event)"
-            @mousedown="mousedown(x, y, $event)"
+            @mousedown="dragStart(x, y, $event.target)"
+            @mouseenter="dragMove(x, y, $event.target)"
+            @vk_touchstart="dragStart(x, y, $event.target)"
+            @vk_touchmove="dragMove(x, y, $event.target)"
           />
         </template>
       </template>
@@ -53,7 +62,14 @@ const htmlPath = computed(() => {
   return path.value.map((v) => v.element);
 });
 
-function mouseover(x: number, y: number, e: MouseEvent) {
+function dragStart(x: number, y: number, element: HTMLElement) {
+  path.value = [{
+    element,
+    coord: {x, y},
+  }];
+}
+
+function dragMove(x: number, y: number, element: HTMLElement) {
   if (path.value.length == 0) {
     // not pathing, ignore mouseover
     return
@@ -73,30 +89,43 @@ function mouseover(x: number, y: number, e: MouseEvent) {
     return
   }
 
-  // If path is empty, or the mouse is over an button that is reachable from the
+  // If the mouse is over a button that is reachable from the
   // last entry in path, add it
-  const last = path.value.length == 0 ? undefined : path.value[path.value.length-1];
-  if (last == undefined || Math.abs(last.coord.x - x) <= 1 && Math.abs(last.coord.y - y) <= 1) {
+  const last = path.value[path.value.length-1];
+  if (Math.abs(last.coord.x - x) <= 1 && Math.abs(last.coord.y - y) <= 1) {
     path.value.push({
-      element: e.target as HTMLElement,
+      element,
       coord: { x, y },
     })
   }
 }
 
-function mousedown(x: number, y: number, e: MouseEvent) {
-  path.value = [{
-    element: e.target as HTMLElement,
-    coord: {x, y},
-  }]
-}
-
-function mouseup() {
+function dragEnd() {
   const word = path.value.
     map((v) => props.board.cells[v.coord.y][v.coord.x]).
     reduce((prev, current) => prev + current, "");
   emit("word", word);
   path.value = [];
+}
+
+// While mouse drags can start on one element and then move to another element,
+// triggering element1.mousedown() then element2.mouseenter(), touch drags keep
+// triggering on element1 even if they move over element2. Therefore, we
+// trigger touch events on .container, then move them downwards to the cells
+// using a custom event. This custom event is ignored on all elements other
+// than our VierkantleCells.
+class VierkantleTouchStartEvent extends Event {}
+class VierkantleTouchMoveEvent extends Event {}
+
+function touchEvent(type: "start" | "move", event: TouchEvent) {
+  var elements = document.elementsFromPoint(event.touches[0].pageX, event.touches[0].pageY)
+  for(let element of elements) {
+    if (type == "start") {
+      element.dispatchEvent(new VierkantleTouchStartEvent("vk_touchstart"));
+    } else {
+      element.dispatchEvent(new VierkantleTouchMoveEvent("vk_touchmove"));
+    }
+  }
 }
 </script>
 
@@ -150,5 +179,6 @@ function mouseup() {
   -o-user-select: none;
 
   cursor: default;
+  touch-action: none;
 }
 </style>
