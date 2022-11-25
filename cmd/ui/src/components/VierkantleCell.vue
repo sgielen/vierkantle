@@ -1,6 +1,8 @@
 <template>
   <div class="cell">
-    {{ props.letter }}
+    <span class="letter">
+      {{ props.letter }}
+    </span>
   </div>
 </template>
 
@@ -10,14 +12,22 @@ const props = defineProps<{
 }>();
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
+/* A cell takes up all its space, then renders the letter
+ * inside according to the font-size, which is taken from
+ * the parent element of the VierkantleBoard. */
 .cell {
-  line-height: 3em;
-  font-size: 32pt;
-  text-transform: uppercase;
+  position: relative;
+  width: 100%;
+  height: 100%;
   border: 4px solid black;
   border-radius: 5%;
-  text-align: center;
-  vertical-align: middle;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .letter {
+    text-transform: uppercase;
+  }
 }
 </style>

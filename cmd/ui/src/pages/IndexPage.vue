@@ -5,11 +5,12 @@
     <div class="row items-center justify-evenly">
       <div v-if="error">{{ error }}</div>
       <div v-else-if="!board">Loading board...</div>
-      <VierkantleBoard
-        v-else
-        :board="board"
-        @word="word"
-      />
+      <div class="game" v-else>
+        <VierkantleBoard
+          :board="board"
+          @word="word"
+        />
+      </div>
     </div>
   </q-page>
 </template>
@@ -82,3 +83,21 @@ function word(word: string) {
   wordInBoard.guessed = true
 }
 </script>
+
+<style lang="scss">
+.game {
+  min-width: 300px;
+  width: 100%;
+  max-width: 600px;
+  aspect-ratio: 1 / 1;
+
+  margin: 20px 40px;
+  font-size: 40px;
+}
+
+@media screen and (max-width: 400px) {
+  .game {
+    font-size: 30px;
+  }
+}
+</style>

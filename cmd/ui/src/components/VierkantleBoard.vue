@@ -1,7 +1,6 @@
 <template>
   <div class="container" :style="css" @mouseup="mouseup">
     <div class="board">
-
       <template v-for="row, y in props.board.cells">
         <template v-for="cell, x in row" :key="x + ',' + y">
           <VierkantleCell
@@ -102,13 +101,17 @@ function mouseup() {
 </script>
 
 <style scoped lang="scss">
+/* The container decides the size of the board. It takes up
+ * 100% of the available space, so that the caller determines
+ * the size of this board.
+ */
 .container {
   position: relative;
-  font-size: 32pt;
-  width: calc(var(--board-width) * 4em);
-  height: calc(var(--board-height) * 4em);
+  width: 100%;
+  height: 100%;
 }
 
+/* .path displays the path overlay. */
 .path {
   position: absolute;
   width: 100%;
@@ -117,16 +120,26 @@ function mouseup() {
   opacity: 0.8;
 }
 
+/* .board displays the board. It takes up 100% of the available
+ * space. The space inside is divided by a grid, with gaps
+ * on all sides. */
 .board {
   position: absolute;
   width: 100%;
   height: 100%;
 
   display: grid;
-  row-gap: 1em;
-  column-gap: 1em;
-  grid-template-columns: repeat(var(--board-width), 3em);
-  grid-template-rows: repeat(var(--board-height), 3em);
+
+  --gap: 5%;
+  column-gap: var(--gap);
+  row-gap: var(--gap);
+
+  --column-gap-size: calc(var(--gap) * (var(--board-height) - 1));
+  --row-gap-size: calc(var(--gap) * (var(--board-width) - 1));
+
+  grid-template-columns: repeat(var(--board-width), calc((100% - var(--column-gap-size)) / var(--board-width)));
+  grid-template-rows: repeat(var(--board-height), calc((100% - var(--row-gap-size)) /var(--board-height)));
+
   justify-content: center;
   align-content: center;
 
