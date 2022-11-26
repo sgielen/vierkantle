@@ -40,7 +40,7 @@ func main() {
 		Handler: http.StripPrefix("/api", http.HandlerFunc(handler)),
 	}
 
-	grpclog.Printf("Starting server. http port: %d", *port)
+	grpclog.Infof("Starting server. http port: %d", *port)
 	if err := httpServer.ListenAndServe(); err != nil {
 		grpclog.Fatalf("failed starting http server: %v", err)
 	}

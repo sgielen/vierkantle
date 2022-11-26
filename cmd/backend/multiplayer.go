@@ -27,6 +27,8 @@ func (s *vierkantleService) HelloStream(stream pb.VierkantleService_HelloStreamS
 			return stream.Send(&pb.HelloStreamResponse{
 				M: "Okay bye!",
 			})
+		} else if err != nil {
+			return err
 		}
 		if err := stream.Send(&pb.HelloStreamResponse{
 			M: fmt.Sprintf("A hello %s to you as well!", msg.M),
