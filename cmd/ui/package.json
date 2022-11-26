@@ -11,8 +11,11 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
+    "@improbable-eng/grpc-web": "^0.15.0",
     "@quasar/extras": "^1.15.5",
     "@vueuse/core": "^9.5.0",
+    "nice-grpc-web": "^2.0.1",
+    "protobufjs": "^7.1.2",
     "quasar": "^2.10.1",
     "vue": "^3.2.45",
     "vue-i18n": "^9.2.2",

@@ -20,6 +20,9 @@ import VierkantleBoard from 'components/VierkantleBoard.vue';
 import { Board } from 'src/components/models';
 import { computed, onMounted, ref } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
+import { createChannel, createClient } from 'nice-grpc-web';
+import { VierkantleServiceDefinition, VierkantleServiceClient, HelloStreamRequest } from '../services/vierkantle';
+import { grpc } from "@improbable-eng/grpc-web";
 
 const board_ = useStorage<Board | undefined>("board", undefined, undefined, { serializer: StorageSerializers.object });
 
@@ -28,6 +31,11 @@ const board = computed(() => {
 });
 
 const error = ref("");
+
+const host = window.location.origin + "/api";
+const channel = createChannel(host, grpc.WebsocketTransport());
+const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
+
 onMounted(async () => {
   const today = new Date().toISOString().slice(0, 10);
 
@@ -62,7 +70,45 @@ const wordsRemaining = computed(() => {
   return r;
 });
 
+async function testRpc() {
+  console.log("trying normal rpc...");
+  try {
+    const response = await client.hello({
+      m: "world",
+    });
+    console.log("succeeded with: ", response.m);
+  } catch(e) {
+    console.log("failed with: ", e);
+  }
+  console.log("done with normal rpc...");
+
+  class AsyncHelloStreamRequests {
+    async *[Symbol.asyncIterator]() {
+      for (let i = 0; i < 5; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        yield HelloStreamRequest.fromPartial({
+          m: "world " + i,
+        });
+      }
+    }
+  }
+
+  console.log("trying stream rpc...");
+  try {
+    const stream = client.helloStream(new AsyncHelloStreamRequests)
+    for await (const response of stream) {
+      console.log("have message", response);
+    }
+  } catch(e) {
+    console.log("failed with: ", e);
+  }
+  console.log("done with stream rpc...");
+
+}
+
 function word(word: string) {
+  testRpc();
+
   if (word.length < 4) {
     wordMessage.value = "te kort: " + word
     return

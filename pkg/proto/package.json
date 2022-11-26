@@ -1,0 +1,8 @@
+{
+  "name": "proto",
+  "version": "1.0.0",
+  "devDependencies": {
+    "grpc-tools": "^1.11.3",
+    "ts-proto": "^1.134.0"
+  }
+}

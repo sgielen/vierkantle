@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package nl.vierkantle;
+
+option go_package = "github.com/sgielen/vierkantle/pkg/proto";
+
+service VierkantleService {
+  rpc Hello(HelloRequest) returns (HelloResponse) {}
+  rpc HelloStream(stream HelloStreamRequest) returns (stream HelloStreamResponse) {}
+}
+
+message HelloRequest {
+  string m = 1;
+}
+
+message HelloResponse {
+  string m = 1;
+}
+
+message HelloStreamRequest {
+  string m = 1;
+}
+
+message HelloStreamResponse {
+  string m = 1;
+}
