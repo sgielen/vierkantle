@@ -18,8 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type VierkantleServiceClient interface {
-	Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error)
-	HelloStream(ctx context.Context, opts ...grpc.CallOption) (VierkantleService_HelloStreamClient, error)
+	TeamStream(ctx context.Context, opts ...grpc.CallOption) (VierkantleService_TeamStreamClient, error)
 }
 
 type vierkantleServiceClient struct {
@@ -30,40 +29,31 @@ func NewVierkantleServiceClient(cc grpc.ClientConnInterface) VierkantleServiceCl
 	return &vierkantleServiceClient{cc}
 }
 
-func (c *vierkantleServiceClient) Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error) {
-	out := new(HelloResponse)
-	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/Hello", in, out, opts...)
+func (c *vierkantleServiceClient) TeamStream(ctx context.Context, opts ...grpc.CallOption) (VierkantleService_TeamStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &VierkantleService_ServiceDesc.Streams[0], "/nl.vierkantle.VierkantleService/TeamStream", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
-}
-
-func (c *vierkantleServiceClient) HelloStream(ctx context.Context, opts ...grpc.CallOption) (VierkantleService_HelloStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &VierkantleService_ServiceDesc.Streams[0], "/nl.vierkantle.VierkantleService/HelloStream", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &vierkantleServiceHelloStreamClient{stream}
+	x := &vierkantleServiceTeamStreamClient{stream}
 	return x, nil
 }
 
-type VierkantleService_HelloStreamClient interface {
-	Send(*HelloStreamRequest) error
-	Recv() (*HelloStreamResponse, error)
+type VierkantleService_TeamStreamClient interface {
+	Send(*TeamStreamClientMessage) error
+	Recv() (*TeamStreamServerMessage, error)
 	grpc.ClientStream
 }
 
-type vierkantleServiceHelloStreamClient struct {
+type vierkantleServiceTeamStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *vierkantleServiceHelloStreamClient) Send(m *HelloStreamRequest) error {
+func (x *vierkantleServiceTeamStreamClient) Send(m *TeamStreamClientMessage) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *vierkantleServiceHelloStreamClient) Recv() (*HelloStreamResponse, error) {
-	m := new(HelloStreamResponse)
+func (x *vierkantleServiceTeamStreamClient) Recv() (*TeamStreamServerMessage, error) {
+	m := new(TeamStreamServerMessage)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -74,19 +64,15 @@ func (x *vierkantleServiceHelloStreamClient) Recv() (*HelloStreamResponse, error
 // All implementations should embed UnimplementedVierkantleServiceServer
 // for forward compatibility
 type VierkantleServiceServer interface {
-	Hello(context.Context, *HelloRequest) (*HelloResponse, error)
-	HelloStream(VierkantleService_HelloStreamServer) error
+	TeamStream(VierkantleService_TeamStreamServer) error
 }
 
 // UnimplementedVierkantleServiceServer should be embedded to have forward compatible implementations.
 type UnimplementedVierkantleServiceServer struct {
 }
 
-func (UnimplementedVierkantleServiceServer) Hello(context.Context, *HelloRequest) (*HelloResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Hello not implemented")
-}
-func (UnimplementedVierkantleServiceServer) HelloStream(VierkantleService_HelloStreamServer) error {
-	return status.Errorf(codes.Unimplemented, "method HelloStream not implemented")
+func (UnimplementedVierkantleServiceServer) TeamStream(VierkantleService_TeamStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method TeamStream not implemented")
 }
 
 // UnsafeVierkantleServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -100,44 +86,26 @@ func RegisterVierkantleServiceServer(s grpc.ServiceRegistrar, srv VierkantleServ
 	s.RegisterService(&VierkantleService_ServiceDesc, srv)
 }
 
-func _VierkantleService_Hello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HelloRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(VierkantleServiceServer).Hello(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/nl.vierkantle.VierkantleService/Hello",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(VierkantleServiceServer).Hello(ctx, req.(*HelloRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+func _VierkantleService_TeamStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(VierkantleServiceServer).TeamStream(&vierkantleServiceTeamStreamServer{stream})
 }
 
-func _VierkantleService_HelloStream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(VierkantleServiceServer).HelloStream(&vierkantleServiceHelloStreamServer{stream})
-}
-
-type VierkantleService_HelloStreamServer interface {
-	Send(*HelloStreamResponse) error
-	Recv() (*HelloStreamRequest, error)
+type VierkantleService_TeamStreamServer interface {
+	Send(*TeamStreamServerMessage) error
+	Recv() (*TeamStreamClientMessage, error)
 	grpc.ServerStream
 }
 
-type vierkantleServiceHelloStreamServer struct {
+type vierkantleServiceTeamStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *vierkantleServiceHelloStreamServer) Send(m *HelloStreamResponse) error {
+func (x *vierkantleServiceTeamStreamServer) Send(m *TeamStreamServerMessage) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *vierkantleServiceHelloStreamServer) Recv() (*HelloStreamRequest, error) {
-	m := new(HelloStreamRequest)
+func (x *vierkantleServiceTeamStreamServer) Recv() (*TeamStreamClientMessage, error) {
+	m := new(TeamStreamClientMessage)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -150,16 +118,11 @@ func (x *vierkantleServiceHelloStreamServer) Recv() (*HelloStreamRequest, error)
 var VierkantleService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "nl.vierkantle.VierkantleService",
 	HandlerType: (*VierkantleServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Hello",
-			Handler:    _VierkantleService_Hello_Handler,
-		},
-	},
+	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "HelloStream",
-			Handler:       _VierkantleService_HelloStream_Handler,
+			StreamName:    "TeamStream",
+			Handler:       _VierkantleService_TeamStream_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

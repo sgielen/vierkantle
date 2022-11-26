@@ -5,22 +5,67 @@ package nl.vierkantle;
 option go_package = "github.com/sgielen/vierkantle/pkg/proto";
 
 service VierkantleService {
-  rpc Hello(HelloRequest) returns (HelloResponse) {}
-  rpc HelloStream(stream HelloStreamRequest) returns (stream HelloStreamResponse) {}
+  rpc TeamStream(stream TeamStreamClientMessage) returns (stream TeamStreamServerMessage) {}
 }
 
-message HelloRequest {
-  string m = 1;
+message CreateTeamRequest {
+  string name = 1;
 }
 
-message HelloResponse {
-  string m = 1;
+message JoinTeamRequest {
+  string token = 1;
+  string name = 2;
 }
 
-message HelloStreamRequest {
-  string m = 1;
+message ChangeNameRequest {
+  string name = 1;
 }
 
-message HelloStreamResponse {
-  string m = 1;
+message WordGuessedRequest {
+  string word = 1;
+}
+
+message TeamStreamClientMessage {
+  oneof request {
+    // The stream must start with one create or join message. After this, the
+    // server responds with TeamInfoResponse, after which the create or join
+    // must not be sent anymore. If the player name already exists in the team,
+    // the server will respond with an ErrorResponse and the stream will be
+    // closed.
+    CreateTeamRequest create = 1;
+    JoinTeamRequest join = 2;
+
+    // When the player changes their name, send a ChangeNameRequest; the
+    // server will respond with a new TeamInfoResponse to everyone. If the
+    // name is already in use, the server will respond with an ErrorResponse
+    // and the name will not be changed.
+    ChangeNameRequest name = 3;
+
+    // When the player guesses a word, send this request; the server will
+    // send a WordGuessedResponse to all other players.
+    WordGuessedRequest word = 4;
+  }
+}
+
+message ErrorResponse {
+  string error = 1;
+}
+
+message TeamInfoResponse {
+  string token = 1;
+  string your_name = 2;
+  repeated string players = 3;
+}
+
+message WordGuessedResponse {
+  string player = 1;
+  string word = 2;
+}
+
+message TeamStreamServerMessage {
+  oneof response {
+    ErrorResponse error = 1;
+    TeamInfoResponse team = 2;
+    WordGuessedResponse word = 3;
+  }
 }

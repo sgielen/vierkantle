@@ -21,8 +21,10 @@ func main() {
 	flag.Parse()
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterVierkantleServiceServer(grpcServer, &vierkantleService{})
-	grpclog.SetLogger(log.New(os.Stderr, "vierkantleServer: ", log.LstdFlags))
+	pb.RegisterVierkantleServiceServer(grpcServer, NewVierkantleService(
+		log.New(os.Stderr, "vierkantle: ", log.LstdFlags),
+	))
+	grpclog.SetLogger(log.New(os.Stderr, "grpc: ", log.LstdFlags))
 
 	wrappedServer := grpcweb.WrapServer(grpcServer,
 		grpcweb.WithWebsockets(true),
