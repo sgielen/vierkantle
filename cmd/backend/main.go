@@ -37,7 +37,7 @@ func main() {
 
 	httpServer := http.Server{
 		Addr:    fmt.Sprintf(":%d", *port),
-		Handler: http.HandlerFunc(handler),
+		Handler: http.StripPrefix("/api", http.HandlerFunc(handler)),
 	}
 
 	grpclog.Printf("Starting server. http port: %d", *port)

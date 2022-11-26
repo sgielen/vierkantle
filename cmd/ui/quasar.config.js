@@ -98,7 +98,6 @@ module.exports = configure(function (/* ctx */) {
         '/api': {
           target: 'http://localhost:9001/',
           ws: true,
-          rewrite: path => path.replace(/^\/api/, ''),
         }
       }
     },
