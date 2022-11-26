@@ -49,7 +49,6 @@ watchEffect(() => {
   if (!ctx) {
     return;
   }
-  console.log("clearing 0x0 w" + canvasWidth.value + "h" + canvasHeight.value);
   ctx.fillStyle = 'rgb(255, 0, 0)';
   ctx.strokeStyle = 'rgb(255, 0, 0)';
   ctx.lineWidth = 10;
