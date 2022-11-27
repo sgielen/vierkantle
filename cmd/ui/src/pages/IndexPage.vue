@@ -75,9 +75,10 @@ onMounted(async () => {
   // Download a new board
   board_.value = null;
   try {
-    const f = await fetch("/board.json");
-    board_.value = await f.json() as Board;
-    board_.value.loadedAt = today;
+    const f = await fetch("/board.json", {cache: 'no-store'});
+    const board = await f.json() as Board;
+    board.loadedAt = today;
+    board_.value = board;
   } catch(e) {
     error.value = e as string;
   }
