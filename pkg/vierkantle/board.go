@@ -5,7 +5,7 @@ import "fmt"
 type Board struct {
 	Width  int
 	Height int
-	Cells  [][]rune
+	Cells  [][]rune // [y][x]
 }
 
 func NewBoard(width, height int) *Board {

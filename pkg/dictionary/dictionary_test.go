@@ -25,90 +25,143 @@ func (r *wordReader) ReadWord() string {
 
 func TestDictionary(t *testing.T) {
 	reader := wordReader{Words: []string{"hello", "hell", "hellos", "potato"}}
-	dict := dictionary.NewPrefixDictionary(&reader, 4, 8)
+	dict := dictionary.NewPrefixDictionary()
+	dict.Read(&reader, dictionary.NormalWord, false)
 
 	if diff := deep.Equal(dict.HasWord("a"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        false,
+		HasThisWord:        dictionary.NoWord,
 		HasWordsWithPrefix: false,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("ah"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        false,
+		HasThisWord:        dictionary.NoWord,
 		HasWordsWithPrefix: false,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("ahe"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        false,
+		HasThisWord:        dictionary.NoWord,
 		HasWordsWithPrefix: false,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("l"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        false,
+		HasThisWord:        dictionary.NoWord,
 		HasWordsWithPrefix: false,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 
 	if diff := deep.Equal(dict.HasWord("h"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        false,
+		HasThisWord:        dictionary.NoWord,
 		HasWordsWithPrefix: true,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("he"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        false,
+		HasThisWord:        dictionary.NoWord,
 		HasWordsWithPrefix: true,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("hel"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        false,
+		HasThisWord:        dictionary.NoWord,
 		HasWordsWithPrefix: true,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("hell"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        true,
+		HasThisWord:        dictionary.NormalWord,
 		HasWordsWithPrefix: true,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("hello"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        true,
+		HasThisWord:        dictionary.NormalWord,
 		HasWordsWithPrefix: true,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("hellos"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        true,
+		HasThisWord:        dictionary.NormalWord,
 		HasWordsWithPrefix: false,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 
 	if diff := deep.Equal(dict.HasWord("p"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        false,
+		HasThisWord:        dictionary.NoWord,
 		HasWordsWithPrefix: true,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("potat"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        false,
+		HasThisWord:        dictionary.NoWord,
 		HasWordsWithPrefix: true,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("potato"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        true,
+		HasThisWord:        dictionary.NormalWord,
 		HasWordsWithPrefix: false,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("potatos"), &dictionary.HasWordsWithPrefixResult{
-		HasThisWord:        false,
+		HasThisWord:        dictionary.NoWord,
+		HasWordsWithPrefix: false,
+	}); diff != nil {
+		t.Fatal(diff)
+	}
+}
+
+func TestDictionaryWordTypes(t *testing.T) {
+	dict := dictionary.NewPrefixDictionary()
+	reader := wordReader{Words: []string{"hello", "hell", "hellos", "potato"}}
+	dict.Read(&reader, dictionary.BonusWord, false)
+	reader = wordReader{Words: []string{"hello", "pot", "foo"}}
+	dict.Read(&reader, dictionary.NormalWord, false)
+	reader = wordReader{Words: []string{"potato", "foo", "mumble"}}
+	dict.Read(&reader, dictionary.SwearWord, true /* upgrade only */)
+	if diff := deep.Equal(dict.HasWord("hello"), &dictionary.HasWordsWithPrefixResult{
+		// normal goes over bonus
+		HasThisWord:        dictionary.NormalWord,
+		HasWordsWithPrefix: true,
+	}); diff != nil {
+		t.Fatal(diff)
+	}
+	if diff := deep.Equal(dict.HasWord("hell"), &dictionary.HasWordsWithPrefixResult{
+		// only a bonus word
+		HasThisWord:        dictionary.BonusWord,
+		HasWordsWithPrefix: true,
+	}); diff != nil {
+		t.Fatal(diff)
+	}
+	if diff := deep.Equal(dict.HasWord("potato"), &dictionary.HasWordsWithPrefixResult{
+		// swear goes over bonus
+		HasThisWord:        dictionary.SwearWord,
+		HasWordsWithPrefix: false,
+	}); diff != nil {
+		t.Fatal(diff)
+	}
+	if diff := deep.Equal(dict.HasWord("foo"), &dictionary.HasWordsWithPrefixResult{
+		// swear goes over normal
+		HasThisWord:        dictionary.SwearWord,
+		HasWordsWithPrefix: false,
+	}); diff != nil {
+		t.Fatal(diff)
+	}
+	if diff := deep.Equal(dict.HasWord("mum"), &dictionary.HasWordsWithPrefixResult{
+		// upgrade only
+		HasThisWord:        dictionary.NoWord,
+		HasWordsWithPrefix: false,
+	}); diff != nil {
+		t.Fatal(diff)
+	}
+	if diff := deep.Equal(dict.HasWord("mumble"), &dictionary.HasWordsWithPrefixResult{
+		// upgrade only
+		HasThisWord:        dictionary.NoWord,
 		HasWordsWithPrefix: false,
 	}); diff != nil {
 		t.Fatal(diff)
@@ -142,8 +195,9 @@ func BenchmarkDictionary(b *testing.B) {
 		}
 		b.Run(fmt.Sprintf("seed_%d", seed), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				dictionary := dictionary.NewPrefixDictionary(reader, 4, 12)
-				dictionary.HasWord("dictionaries")
+				dict := dictionary.NewPrefixDictionary()
+				dict.Read(reader, dictionary.NormalWord, false)
+				dict.HasWord("dictionaries")
 			}
 		})
 	}

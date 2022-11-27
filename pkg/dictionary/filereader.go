@@ -3,6 +3,7 @@ package dictionary
 import (
 	"bufio"
 	"os"
+	"strings"
 )
 
 type fileReader struct {
@@ -27,5 +28,7 @@ func (f *fileReader) ReadWord() string {
 	if !f.scanner.Scan() {
 		return ""
 	}
-	return f.scanner.Text()
+	line := f.scanner.Text()
+	words := strings.Fields(line)
+	return words[0]
 }

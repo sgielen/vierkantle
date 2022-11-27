@@ -2,10 +2,14 @@ package vierkantle
 
 import (
 	"encoding/json"
+
+	"github.com/sgielen/vierkantle/pkg/dictionary"
 )
 
 type BoardJsonWord struct {
-	Path Path `json:"path"`
+	Path  Path `json:"path"`
+	Bonus bool `json:"bonus,omitempty"`
+	Swear bool `json:"swear,omitempty"`
 }
 
 type BoardJsonExport struct {
@@ -29,7 +33,9 @@ func (b *Board) PrintBoardJson(words []WordInBoard) ([]byte, error) {
 	res.Words = make(map[string]BoardJsonWord)
 	for _, word := range words {
 		res.Words[word.Word] = BoardJsonWord{
-			Path: word.Path,
+			Path:  word.Path,
+			Bonus: word.WordType == dictionary.BonusWord,
+			Swear: word.WordType == dictionary.SwearWord,
 		}
 	}
 	return json.Marshal(res)

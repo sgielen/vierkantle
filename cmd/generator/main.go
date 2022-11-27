@@ -11,17 +11,21 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatalf("Usage: %s wordlist", os.Args[0])
+	if len(os.Args) != 3 {
+		log.Fatalf("Usage: %s bonuslist wordlist", os.Args[0])
 	}
-	wordlist := os.Args[1]
+	bonuslist := os.Args[1]
+	wordlist := os.Args[2]
 
 	boardWidth := 4
 	boardHeight := 4
 
-	log.Printf("Reading dictionary...")
-	dictionary, err := dictionary.NewPrefixDictionaryFromFile(wordlist, 4, boardWidth*boardHeight)
-	if err != nil {
+	log.Printf("Reading dictionaries...")
+	dict := dictionary.NewPrefixDictionary()
+	if err := dict.ReadFromFile(bonuslist, dictionary.BonusWord, false); err != nil {
+		log.Fatal(err)
+	}
+	if err := dict.ReadFromFile(wordlist, dictionary.NormalWord, true /* upgrade only */); err != nil {
 		log.Fatal(err)
 	}
 
@@ -39,20 +43,26 @@ func main() {
 		}
 		board.FillRandomly()
 
-		words := board.WordsInBoard(dictionary, 4)
+		words := board.WordsInBoard(dict, 4)
 		if !board.AreAllCellsUsed(words) {
 			// nevermind, skip this board
 			continue
 		}
 		score := 0
 		for _, wordInBoard := range words {
-			score += int(math.Pow(float64(len(wordInBoard.Word)), 3))
+			if wordInBoard.WordType == dictionary.NormalWord {
+				score += int(math.Pow(float64(len(wordInBoard.Word)), 3))
+			}
 		}
 		if score > bestScore {
 			bestBoard = board
 			bestWords = words
 			bestScore = score
 		}
+	}
+
+	if bestBoard == nil {
+		log.Fatal("failed to generate a board")
 	}
 
 	board := bestBoard
@@ -75,9 +85,9 @@ func main() {
 	}
 
 	log.Printf("Analyzing board...")
-	wordsByLength := map[int][]string{}
+	wordsByLength := map[int][]vierkantle.WordInBoard{}
 	for _, word := range words {
-		wordsByLength[len(word.Word)] = append(wordsByLength[len(word.Word)], word.Word)
+		wordsByLength[len(word.Word)] = append(wordsByLength[len(word.Word)], word)
 	}
 	var lengths []int
 	for len := range wordsByLength {
@@ -85,14 +95,24 @@ func main() {
 	}
 	sort.Ints(lengths)
 	letters := 0
+	normalWords := 0
 	for _, length := range lengths {
 		words := wordsByLength[length]
 		log.Printf("%d words of length %d:", len(words), length)
-		sort.Strings(words)
+		sort.Slice(words, func(a, b int) bool { return words[a].Word < words[b].Word })
 		for _, w := range words {
-			log.Printf("- %s", w)
-			letters += len(w)
+			tp := ""
+			if w.WordType == dictionary.BonusWord {
+				tp = " (bonus)"
+			} else if w.WordType == dictionary.SwearWord {
+				tp = " (swear)"
+			}
+			log.Printf("- %s%s", w.Word, tp)
+			if w.WordType == dictionary.NormalWord {
+				normalWords += 1
+				letters += len(w.Word)
+			}
 		}
 	}
-	log.Printf("%d words in total, %d letters in total!", len(words), letters)
+	log.Printf("%d normal words in total, %d letters in total!", normalWords, letters)
 }

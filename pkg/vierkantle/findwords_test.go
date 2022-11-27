@@ -37,7 +37,7 @@ func (m *MockDictionary) HasWord(w string) *dictionary.HasWordsWithPrefixResult 
 	res := dictionary.HasWordsWithPrefixResult{}
 	for _, p := range m.ExistingWords {
 		if p == w {
-			res.HasThisWord = true
+			res.HasThisWord = dictionary.NormalWord
 		}
 	}
 	for _, p := range m.ExistingPrefixes {
@@ -118,7 +118,8 @@ func BenchmarkWordsInBoard(b *testing.B) {
 	board.Cells[4][4] = 'e'
 
 	for i := 0; i < b.N; i++ {
-		dictionary := dictionary.NewPrefixDictionary(dictionary.NewFileReaderFromHandle(fh), 4, 12)
-		board.WordsInBoard(dictionary, 4)
+		dict := dictionary.NewPrefixDictionary()
+		dict.Read(dictionary.NewFileReaderFromHandle(fh), dictionary.NormalWord, false)
+		board.WordsInBoard(dict, 4)
 	}
 }
