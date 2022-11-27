@@ -27,7 +27,7 @@ func (b *Board) PrintBoard() string {
 	for y := 0; y < b.Height; y++ {
 		res = res + "  "
 		for x := 0; x < b.Width; x++ {
-			res = res + fmt.Sprintf("%c   ", b.Cells[x][y])
+			res = res + fmt.Sprintf("%c   ", b.Cells[y][x])
 		}
 		res = res + "  \n"
 	}
@@ -38,7 +38,7 @@ func (b *Board) PrintBoardGo() string {
 	res := "\n"
 	for y := 0; y < b.Height; y++ {
 		for x := 0; x < b.Width; x++ {
-			res = res + fmt.Sprintf("board.Cells[%d][%d] = '%c'\n", x, y, b.Cells[x][y])
+			res = res + fmt.Sprintf("board.Cells[%d][%d] = '%c'\n", y, x, b.Cells[y][x])
 		}
 	}
 	return res + "\n"

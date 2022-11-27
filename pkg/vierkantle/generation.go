@@ -32,9 +32,9 @@ func (b *Board) randomPathWithLength(length int, path []Coord) []Coord {
 }
 
 func (b *Board) Fill(c rune) {
-	for x := 0; x < b.Width; x++ {
-		for y := 0; y < b.Height; y++ {
-			b.Cells[x][y] = c
+	for y := 0; y < b.Height; y++ {
+		for x := 0; x < b.Width; x++ {
+			b.Cells[y][x] = c
 		}
 	}
 }
@@ -45,17 +45,17 @@ func (b *Board) PrefillRandomly(word string) error {
 		return fmt.Errorf("the prefill word doesn't fit in the board :-(")
 	}
 	for i, c := range path {
-		b.Cells[c.X][c.Y] = rune(word[i])
+		b.Cells[c.Y][c.X] = rune(word[i])
 	}
 	return nil
 }
 
 func (b *Board) FillRandomly() {
 	letters := []rune("abcdefghijklmnopqrstuvwxyz")
-	for x := 0; x < b.Width; x++ {
-		for y := 0; y < b.Height; y++ {
-			if b.Cells[x][y] == '?' {
-				b.Cells[x][y] = letters[random.Intn(len(letters))]
+	for y := 0; y < b.Height; y++ {
+		for x := 0; x < b.Width; x++ {
+			if b.Cells[y][x] == '?' {
+				b.Cells[y][x] = letters[random.Intn(len(letters))]
 			}
 		}
 	}

@@ -17,6 +17,6 @@ export interface Board {
   loadedAt?: string;
   width: number;
   height: number;
-  cells: string[][];
+  cells: string[][]; // [y][x]
   words: Record<string, WordInBoard>;
 }

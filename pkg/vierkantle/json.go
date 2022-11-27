@@ -15,7 +15,7 @@ type BoardJsonWord struct {
 type BoardJsonExport struct {
 	Width  int                      `json:"width"`
 	Height int                      `json:"height"`
-	Cells  [][]string               `json:"cells"`
+	Cells  [][]string               `json:"cells"` // [y][x]
 	Words  map[string]BoardJsonWord `json:"words"`
 }
 
@@ -24,10 +24,10 @@ func (b *Board) PrintBoardJson(words []WordInBoard) ([]byte, error) {
 	res.Width = b.Width
 	res.Height = b.Height
 	res.Cells = make([][]string, res.Width)
-	for x, row := range b.Cells {
-		res.Cells[x] = make([]string, res.Height)
-		for y, cell := range row {
-			res.Cells[x][y] = string(cell)
+	for y, row := range b.Cells {
+		res.Cells[y] = make([]string, res.Height)
+		for x, cell := range row {
+			res.Cells[y][x] = string(cell)
 		}
 	}
 	res.Words = make(map[string]BoardJsonWord)

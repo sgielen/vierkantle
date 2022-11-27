@@ -9,8 +9,8 @@ type Path []Coord
 
 func (b *Board) candidatesForInitialNavigation() []Coord {
 	var res []Coord
-	for x := 0; x < b.Width; x++ {
-		for y := 0; y < b.Height; y++ {
+	for y := 0; y < b.Height; y++ {
+		for x := 0; x < b.Width; x++ {
 			res = append(res, Coord{X: x, Y: y})
 		}
 	}

@@ -13,7 +13,7 @@ type WordInBoard struct {
 func (b *Board) WordForPath(path Path) string {
 	res := make([]rune, len(path))
 	for i, c := range path {
-		res[i] = b.Cells[c.X][c.Y]
+		res[i] = b.Cells[c.Y][c.X]
 	}
 	return string(res)
 }
@@ -47,11 +47,11 @@ func (b *Board) wordsInBoard(words *map[string]WordInBoard, dict dictionary.Pref
 }
 
 func (b *Board) AreAllCellsUsed(words []WordInBoard) bool {
-	cells := make([][]bool, b.Width)
-	for x := range cells {
-		cells[x] = make([]bool, b.Height)
-		for y := range cells[x] {
-			cells[x][y] = false
+	cells := make([][]bool, b.Height)
+	for y := range cells {
+		cells[y] = make([]bool, b.Width)
+		for x := range cells[y] {
+			cells[y][x] = false
 		}
 	}
 	cellsRemaining := b.Width * b.Height
@@ -60,8 +60,8 @@ func (b *Board) AreAllCellsUsed(words []WordInBoard) bool {
 			continue
 		}
 		for _, coord := range word.Path {
-			if cells[coord.X][coord.Y] == false {
-				cells[coord.X][coord.Y] = true
+			if !cells[coord.Y][coord.X] {
+				cells[coord.Y][coord.X] = true
 				cellsRemaining -= 1
 				if cellsRemaining == 0 {
 					return true
