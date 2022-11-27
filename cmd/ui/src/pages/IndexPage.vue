@@ -14,7 +14,7 @@
             <button @click="createTeam">Maak een team</button>
           </p>
           <p>
-            Of: <input type="text" v-model="token" /> <button @click="joinTeam">Join een team</button>
+            Of: <input type="text" v-model="token" placeholder="Code" /> <button @click="joinTeam">Join een team</button>
           </p>
           <p>
             <span v-if="multiplayerError" style="color: red;">{{ multiplayerError }}</span>
@@ -23,7 +23,7 @@
         <template v-else>
           <p>
             Je speelt in een team met {{ otherPlayers }}. Nodig meer mensen uit met
-            de volgende token: <code>{{ multiplayer.token }}</code>
+            de volgende code: <code>{{ multiplayer.token }}</code>
           </p>
         </template>
       </div>
