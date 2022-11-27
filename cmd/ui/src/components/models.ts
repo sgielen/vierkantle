@@ -3,12 +3,8 @@ export interface Coord {
   y: number;
 }
 
-export interface Path {
-  coords: Coord[];
-}
-
 export interface WordInBoard {
-  path: Path;
+  path: Coord[];
   bonus?: boolean;
   guessed?: boolean;
 }
@@ -19,4 +15,9 @@ export interface Board {
   height: number;
   cells: string[][]; // [y][x]
   words: Record<string, WordInBoard>;
+}
+
+export interface CellState {
+  begins: number;
+  used: number;
 }

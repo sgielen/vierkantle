@@ -12,6 +12,9 @@
         <template v-for="cell, x in row" :key="x + ',' + y">
           <VierkantleCell
             :letter="cell"
+            :state="cellState(x, y)"
+            :show-begins="true"
+            :show-used="true"
             @mousedown="dragStart(x, y, $event.target)"
             @mouseenter="dragMove(x, y, $event.target)"
             @vk_touchstart="dragStart(x, y, $event.target)"
@@ -31,7 +34,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Board, Coord } from './models';
+import { Board, CellState, Coord } from './models';
 import VierkantleCell from './VierkantleCell.vue';
 import VierkantlePath from './VierkantlePath.vue';
 
@@ -43,6 +46,24 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (event: 'word', word: string): void,
 }>();
+
+function cellState(x: number, y: number): CellState {
+  let begins = 0;
+  let used = 0;
+  Object.values(props.board.words).forEach((word) => {
+    if (!word.bonus && !word.guessed) {
+      for (let i = 0; i < word.path.length; ++i) {
+        if (word.path[i].x == x && word.path[i].y == y) {
+          used += 1;
+          if (i == 0) {
+            begins += 1;
+          }
+        }
+      }
+    }
+  });
+  return { begins, used };
+}
 
 const css = computed(() => {
   return {
