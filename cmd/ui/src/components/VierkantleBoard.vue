@@ -146,6 +146,7 @@ class VierkantleTouchStartEvent extends Event {}
 class VierkantleTouchMoveEvent extends Event {}
 
 function touchEvent(type: "start" | "move", event: TouchEvent) {
+  event.preventDefault();
   var elements = document.elementsFromPoint(event.touches[0].clientX, event.touches[0].clientY)
   for(let element of elements) {
     if (type == "start") {
