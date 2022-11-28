@@ -256,7 +256,7 @@ function joinTeam() {
 .game {
   min-width: 300px;
   width: 100%;
-  max-width: 600px;
+  max-width: min(600px, 80vh);
   aspect-ratio: 1 / 1;
 
   margin: 20px 40px;
@@ -264,6 +264,12 @@ function joinTeam() {
 }
 
 @media screen and (max-width: 400px) {
+  .game {
+    font-size: 30px;
+  }
+}
+
+@media screen and (max-height: 500px) {
   .game {
     font-size: 30px;
   }
