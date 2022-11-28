@@ -37,6 +37,7 @@
         <VierkantleBoard
           :board="board"
           @word="word(null, $event)"
+          @partialWord="partialWord($event)"
         />
       </div>
     </div>
@@ -98,6 +99,10 @@ const wordsRemaining = computed(() => {
   });
   return r;
 });
+
+function partialWord(word: string) {
+  wordMessage.value = word;
+}
 
 function word(who: string | null, word: string) {
   if (who) {

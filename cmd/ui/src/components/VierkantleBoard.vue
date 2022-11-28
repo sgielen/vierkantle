@@ -45,6 +45,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (event: 'word', word: string): void,
+  (event: 'partialWord', word: string): void,
 }>();
 
 function cellState(x: number, y: number): CellState {
@@ -83,11 +84,18 @@ const htmlPath = computed(() => {
   return path.value.map((v) => v.element);
 });
 
+const wordPath = computed(() => {
+  return path.value.
+    map((v) => props.board.cells[v.coord.y][v.coord.x]).
+    reduce((prev, current) => prev + current, "");
+})
+
 function dragStart(x: number, y: number, element: HTMLElement) {
   path.value = [{
     element,
     coord: {x, y},
   }];
+  emit("partialWord", wordPath.value);
 }
 
 function dragMove(x: number, y: number, element: HTMLElement) {
@@ -101,6 +109,7 @@ function dragMove(x: number, y: number, element: HTMLElement) {
     const secondLast = path.value[path.value.length-2];
     if (secondLast.coord.x == x && secondLast.coord.y == y) {
       path.value.pop()
+      emit("partialWord", wordPath.value);
       return
     }
   }
@@ -118,14 +127,12 @@ function dragMove(x: number, y: number, element: HTMLElement) {
       element,
       coord: { x, y },
     })
+    emit("partialWord", wordPath.value);
   }
 }
 
 function dragEnd() {
-  const word = path.value.
-    map((v) => props.board.cells[v.coord.y][v.coord.x]).
-    reduce((prev, current) => prev + current, "");
-  emit("word", word);
+  emit("word", wordPath.value);
   path.value = [];
 }
 
