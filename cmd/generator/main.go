@@ -5,28 +5,82 @@ import (
 	"math"
 	"os"
 	"sort"
+	"strconv"
 
 	"github.com/sgielen/vierkantle/pkg/dictionary"
 	"github.com/sgielen/vierkantle/pkg/vierkantle"
 )
 
-func main() {
-	if len(os.Args) != 3 {
-		log.Fatalf("Usage: %s bonuslist wordlist", os.Args[0])
+func readUntilArg(args []string, list *[]string) int {
+	for i := 0; i < len(args); i += 1 {
+		if len(args[i]) > 0 && args[i][0] == '-' {
+			return i
+		}
+		*list = append(*list, args[i])
 	}
-	bonuslist := os.Args[1]
-	wordlist := os.Args[2]
+	return len(args)
+}
 
-	boardWidth := 4
-	boardHeight := 4
+func help() {
+	log.Fatalf("Usage: %s -s 4 -w seedword -W wordlist [wordlist..] -B bonuslist [bonuslist..] -o board.json", os.Args[0])
+}
+
+func main() {
+	var wordlists []string
+	var bonuslists []string
+	output := "board.json"
+	var seedWord string
+	size := 4
+
+	for i := 1; i < len(os.Args); {
+		switch os.Args[i] {
+		case "-W":
+			i += 1
+			i += readUntilArg(os.Args[i:], &wordlists)
+		case "-B":
+			i += 1
+			i += readUntilArg(os.Args[i:], &bonuslists)
+		case "-w":
+			seedWord = os.Args[i+1]
+			i += 2
+		case "-o":
+			output = os.Args[i+1]
+			i += 2
+		case "-s":
+			var err error
+			size, err = strconv.Atoi(os.Args[i+1])
+			if err != nil {
+				log.Print(err)
+				help()
+			}
+			i += 2
+		default:
+			log.Printf("Unknown parameter: %s", os.Args[i])
+			fallthrough
+		case "-h":
+			help()
+		}
+	}
+
+	if len(wordlists) == 0 {
+		log.Printf("No wordlists given.")
+		help()
+	}
+
+	boardWidth := size
+	boardHeight := size
 
 	log.Printf("Reading dictionaries...")
 	dict := dictionary.NewPrefixDictionary()
-	if err := dict.ReadFromFile(bonuslist, dictionary.BonusWord, false); err != nil {
-		log.Fatal(err)
+	for _, bonuslist := range bonuslists {
+		if err := dict.ReadFromFile(bonuslist, dictionary.BonusWord, false); err != nil {
+			log.Fatal(err)
+		}
 	}
-	if err := dict.ReadFromFile(wordlist, dictionary.NormalWord, true /* upgrade only */); err != nil {
-		log.Fatal(err)
+	for _, wordlist := range wordlists {
+		if err := dict.ReadFromFile(wordlist, dictionary.NormalWord, true /* upgrade only */); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	var bestBoard *vierkantle.Board
@@ -34,12 +88,16 @@ func main() {
 	bestScore := 0.
 
 	log.Printf("Generating boards...")
-	niceWord := "algoritmes"
+	if seedWord != "" {
+		dict.AddWord(dictionary.WordReadResult{
+			Word: seedWord,
+		}, dictionary.NormalWord, false)
+	}
 	attempts := 10000
 	for attempt := 0; attempt < attempts; attempt++ {
 		board := vierkantle.NewBoard(boardWidth, boardHeight)
-		if err := board.PrefillRandomly(niceWord); err != nil {
-			log.Fatal("That prefill word doesn't fit in the board :-(")
+		if err := board.PrefillRandomly(seedWord); err != nil {
+			log.Fatal("That seed word doesn't fit in the board :-(")
 		}
 
 		// Try to get this board filled up with random letters
@@ -101,7 +159,7 @@ func main() {
 		log.Fatalf("failed to generate JSON for board: %s", err.Error())
 	}
 
-	if fh, err := os.OpenFile("board.json", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644); err != nil {
+	if fh, err := os.OpenFile(output, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644); err != nil {
 		log.Fatalf("failed to open file to write JSON: %s", err.Error())
 	} else if _, err = fh.Write(json); err != nil {
 		log.Fatalf("failed to write JSON to file: %s", err.Error())
