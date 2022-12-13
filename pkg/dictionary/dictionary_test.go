@@ -14,13 +14,13 @@ type wordReader struct {
 	Words []string
 }
 
-func (r *wordReader) ReadWord() string {
+func (r *wordReader) ReadWord() dictionary.WordReadResult {
 	if len(r.Words) == 0 {
-		return ""
+		return dictionary.WordReadResult{}
 	}
 	var word string
 	word, r.Words = r.Words[0], r.Words[1:]
-	return word
+	return dictionary.WordReadResult{Word: word}
 }
 
 func TestDictionary(t *testing.T) {
@@ -173,13 +173,15 @@ type mockReader struct {
 	letters []rune
 }
 
-func (m *mockReader) ReadWord() string {
+func (m *mockReader) ReadWord() dictionary.WordReadResult {
 	length := m.r.Intn(12)
 	res := strings.Builder{}
 	for ; length > 0; length-- {
 		res.WriteRune(m.letters[m.r.Intn(len(m.letters))])
 	}
-	return res.String()
+	return dictionary.WordReadResult{
+		Word: res.String(),
+	}
 }
 
 var seeds = []int64{0, 1000, 2000, 5000}

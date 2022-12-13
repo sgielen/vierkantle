@@ -16,11 +16,17 @@ const (
 
 type HasWordsWithPrefixResult struct {
 	HasThisWord        WordType
+	Frequency          float64
 	HasWordsWithPrefix bool
 }
 
+type WordReadResult struct {
+	Word      string
+	Frequency float64
+}
+
 type WordReader interface {
-	ReadWord() string
+	ReadWord() WordReadResult
 }
 
 type PrefixDictionary interface {
@@ -46,33 +52,42 @@ func (dictionary *prefixDictionary) ReadFromFile(file string, wordTypes WordType
 	return nil
 }
 
+func (dictionary *prefixDictionary) AddWord(word WordReadResult, wordType WordType, upgradeOnly bool) {
+	for i := 1; i < len(word.Word); i++ {
+		prefix := word.Word[0:i]
+		if v, ok := dictionary.Prefixes[prefix]; ok {
+			v.HasWordsWithPrefix = true
+		} else if !upgradeOnly {
+			dictionary.Prefixes[prefix] = &HasWordsWithPrefixResult{
+				HasThisWord:        NoWord,
+				Frequency:          0,
+				HasWordsWithPrefix: true,
+			}
+		}
+	}
+	if v, ok := dictionary.Prefixes[word.Word]; ok {
+		if wordType > v.HasThisWord {
+			v.HasThisWord = wordType
+		}
+		if word.Frequency > v.Frequency {
+			v.Frequency = word.Frequency
+		}
+	} else if !upgradeOnly {
+		dictionary.Prefixes[word.Word] = &HasWordsWithPrefixResult{
+			HasThisWord:        wordType,
+			Frequency:          word.Frequency,
+			HasWordsWithPrefix: false,
+		}
+	}
+}
+
 func (dictionary *prefixDictionary) Read(reader WordReader, wordTypes WordType, upgradeOnly bool) {
 	for {
 		word := reader.ReadWord()
-		if word == "" {
+		if word.Word == "" {
 			break
 		}
-		for i := 1; i < len(word); i++ {
-			prefix := word[0:i]
-			if v, ok := dictionary.Prefixes[prefix]; ok {
-				v.HasWordsWithPrefix = true
-			} else if !upgradeOnly {
-				dictionary.Prefixes[prefix] = &HasWordsWithPrefixResult{
-					HasThisWord:        NoWord,
-					HasWordsWithPrefix: true,
-				}
-			}
-		}
-		if v, ok := dictionary.Prefixes[word]; ok {
-			if wordTypes > v.HasThisWord {
-				v.HasThisWord = wordTypes
-			}
-		} else if !upgradeOnly {
-			dictionary.Prefixes[word] = &HasWordsWithPrefixResult{
-				HasThisWord:        wordTypes,
-				HasWordsWithPrefix: false,
-			}
-		}
+		dictionary.AddWord(word, wordTypes, upgradeOnly)
 	}
 }
 

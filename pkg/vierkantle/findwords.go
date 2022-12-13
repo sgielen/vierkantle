@@ -5,9 +5,10 @@ import (
 )
 
 type WordInBoard struct {
-	Word     string
-	Path     Path
-	WordType dictionary.WordType
+	Word      string
+	Path      Path
+	WordType  dictionary.WordType
+	Frequency float64
 }
 
 func (b *Board) WordForPath(path Path) string {
@@ -35,9 +36,10 @@ func (b *Board) wordsInBoard(words *map[string]WordInBoard, dict dictionary.Pref
 		wordMatch := dict.HasWord(word)
 		if wordMatch.HasThisWord != dictionary.NoWord && len(nextPath) >= minLength {
 			(*words)[word] = WordInBoard{
-				Word:     word,
-				Path:     nextPath,
-				WordType: wordMatch.HasThisWord,
+				Word:      word,
+				Path:      nextPath,
+				WordType:  wordMatch.HasThisWord,
+				Frequency: wordMatch.Frequency,
 			}
 		}
 		if wordMatch.HasWordsWithPrefix {

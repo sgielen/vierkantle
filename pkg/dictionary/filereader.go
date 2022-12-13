@@ -3,6 +3,7 @@ package dictionary
 import (
 	"bufio"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -10,7 +11,7 @@ type fileReader struct {
 	scanner *bufio.Scanner
 }
 
-func NewFileReader(file string) (WordReader, error) {
+func NewFileReader(file string) (*fileReader, error) {
 	fh, err := os.Open(file)
 	if err != nil {
 		return nil, err
@@ -18,17 +19,24 @@ func NewFileReader(file string) (WordReader, error) {
 	return NewFileReaderFromHandle(fh), nil
 }
 
-func NewFileReaderFromHandle(fh *os.File) WordReader {
+func NewFileReaderFromHandle(fh *os.File) *fileReader {
 	scanner := bufio.NewScanner(fh)
 	scanner.Split(bufio.ScanLines)
 	return &fileReader{scanner: scanner}
 }
 
-func (f *fileReader) ReadWord() string {
+func (f *fileReader) ReadWord() WordReadResult {
 	if !f.scanner.Scan() {
-		return ""
+		return WordReadResult{}
 	}
 	line := f.scanner.Text()
 	words := strings.Fields(line)
-	return words[0]
+	var frequency float64
+	if len(words) > 1 {
+		frequency, _ = strconv.ParseFloat(words[1], 64)
+	}
+	return WordReadResult{
+		Word:      words[0],
+		Frequency: frequency,
+	}
 }

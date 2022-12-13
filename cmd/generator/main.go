@@ -31,7 +31,7 @@ func main() {
 
 	var bestBoard *vierkantle.Board
 	var bestWords []vierkantle.WordInBoard
-	bestScore := 0
+	bestScore := 0.
 
 	log.Printf("Generating boards...")
 	niceWord := "algoritmes"
@@ -48,12 +48,21 @@ func main() {
 			// nevermind, skip this board
 			continue
 		}
-		score := 0
+
+		score := 0.
+		numNormalWords := 0
 		for _, wordInBoard := range words {
 			if wordInBoard.WordType == dictionary.NormalWord {
-				score += int(math.Pow(float64(len(wordInBoard.Word)), 3))
+				numNormalWords++
+				frequencyScore := math.Log10(wordInBoard.Frequency)
+				if frequencyScore < 0 {
+					frequencyScore = 0
+				}
+				lengthScore := float64(len(wordInBoard.Word)-4) * 3
+				score += lengthScore * frequencyScore
 			}
 		}
+		score = score / float64(numNormalWords)
 		if score > bestScore {
 			bestBoard = board
 			bestWords = words
