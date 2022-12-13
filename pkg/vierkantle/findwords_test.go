@@ -2,6 +2,7 @@ package vierkantle_test
 
 import (
 	"os"
+	"sort"
 	"testing"
 
 	"github.com/go-test/deep"
@@ -56,6 +57,7 @@ func TestWordsInBoard(t *testing.T) {
 	for _, w := range wordsInBoard {
 		words = append(words, w.Word)
 	}
+	sort.Slice(words, func(a, b int) bool { return words[a] < words[b] })
 	expectedWords := []string{"hell", "hello"}
 	if diff := deep.Equal(words, expectedWords); diff != nil {
 		t.Error(diff)
