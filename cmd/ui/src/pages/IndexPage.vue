@@ -1,47 +1,67 @@
 <template>
-  <q-page>
-    <div class="row items-center justify-evenly" style="width: 400px; margin: 0 auto;">
-      <div class="col">
-        <template v-if="!multiplayer">
-          <p>
-            Je speelt alleen. Dat is prima, geen oordeel. Maar als je wel vrienden
-            hebt, kies dan je naam en maak of join een team:
-          </p>
-          <p>
-            Je naam: <input type="text" v-model="playerName" @change="changePlayerName" />
-          </p>
-          <p>
-            <button @click="createTeam">Maak een team</button>
-          </p>
-          <p>
-            Of: <input type="text" v-model="token" placeholder="Code" /> <button @click="joinTeam">Join een team</button>
-          </p>
-          <p>
-            <span v-if="multiplayerError" style="color: red;">{{ multiplayerError }}</span>
-          </p>
-        </template>
-        <template v-else>
-          <p>
-            Je speelt in een team met {{ otherPlayers }}. Nodig meer mensen uit met
-            de volgende code: <code>{{ multiplayer.token }}</code>
-          </p>
-        </template>
+  <q-header elevated>
+    <q-toolbar>
+      <q-btn
+        class="only-if-small"
+        flat
+        dense
+        round
+        icon="menu"
+        aria-label="Menu"
+        @click="toggleWordList"
+      />
+
+      <q-toolbar-title>
+        Vierkantle
+      </q-toolbar-title>
+    </q-toolbar>
+  </q-header>
+
+  <q-page-container>
+    <q-page>
+      <div class="row items-center justify-evenly" style="width: 400px; margin: 0 auto;">
+        <div class="col">
+          <template v-if="!multiplayer">
+            <p>
+              Je speelt alleen. Dat is prima, geen oordeel. Maar als je wel vrienden
+              hebt, kies dan je naam en maak of join een team:
+            </p>
+            <p>
+              Je naam: <input type="text" v-model="playerName" @change="changePlayerName" />
+            </p>
+            <p>
+              <button @click="createTeam">Maak een team</button>
+            </p>
+            <p>
+              Of: <input type="text" v-model="token" placeholder="Code" /> <button @click="joinTeam">Join een team</button>
+            </p>
+            <p>
+              <span v-if="multiplayerError" style="color: red;">{{ multiplayerError }}</span>
+            </p>
+          </template>
+          <template v-else>
+            <p>
+              Je speelt in een team met {{ otherPlayers }}. Nodig meer mensen uit met
+              de volgende code: <code>{{ multiplayer.token }}</code>
+            </p>
+          </template>
+        </div>
       </div>
-    </div>
-    <div class="row items-center justify-evenly">{{ wordsRemaining }} words remaining</div>
-    <div class="row items-center justify-evenly">{{ wordMessage }}</div>
-    <div class="row items-center justify-evenly">
-      <div v-if="error">{{ error }}</div>
-      <div v-else-if="!board">Loading board...</div>
-      <div class="game" v-else>
-        <VierkantleBoard
-          :board="board"
-          @word="word(null, $event)"
-          @partialWord="partialWord($event)"
-        />
+      <div class="row items-center justify-evenly">{{ wordsRemaining }} words remaining</div>
+      <div class="row items-center justify-evenly">{{ wordMessage }}</div>
+      <div class="row items-center justify-evenly">
+        <div v-if="error">{{ error }}</div>
+        <div v-else-if="!board">Loading board...</div>
+        <div class="game" v-else>
+          <VierkantleBoard
+            :board="board"
+            @word="word(null, $event)"
+            @partialWord="partialWord($event)"
+          />
+        </div>
       </div>
-    </div>
-  </q-page>
+    </q-page>
+  </q-page-container>
 </template>
 
 <script setup lang="ts">
@@ -84,6 +104,12 @@ onMounted(async () => {
     error.value = e as string;
   }
 });
+
+const wordListOpen = ref(true)
+
+function toggleWordList() {
+  wordListOpen.value = !wordListOpen.value
+}
 
 const wordMessage = ref(".");
 
@@ -263,9 +289,17 @@ function joinTeam() {
   font-size: 40px;
 }
 
+.only-if-small {
+  display: none;
+}
+
 @media screen and (max-width: 400px) {
   .game {
     font-size: 30px;
+  }
+
+  .only-if-small {
+    display: block;
   }
 }
 
