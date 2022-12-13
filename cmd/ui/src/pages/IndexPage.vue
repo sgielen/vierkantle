@@ -86,20 +86,27 @@ const channel = createChannel(host, grpc.WebsocketTransport());
 const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
 
 onMounted(async () => {
+  // TODO: Sometimes, I want to replace the board during the
+  // day. So, always download the board, and replace the stored
+  // one if it's different. Should find a way to do expiry, so
+  // this code doesn't have to always download it
+  /*
   const today = new Date().toISOString().slice(0, 10);
 
   if (board_.value && board_.value.loadedAt === today) {
     // Today's board is already present, keep it
     return
   }
+  board_.value = null;
+  */
 
   // Download a new board
-  board_.value = null;
   try {
     const f = await fetch("/board.json", {cache: 'no-store'});
     const board = await f.json() as Board;
-    board.loadedAt = today;
-    board_.value = board;
+    if (!board_.value || boardLetters(board) != boardLetters(board_.value)) {
+      board_.value = board;
+    }
   } catch(e) {
     error.value = e as string;
   }
@@ -109,6 +116,10 @@ const wordListOpen = ref(true)
 
 function toggleWordList() {
   wordListOpen.value = !wordListOpen.value
+}
+
+function boardLetters(b: Board): string {
+  return b.cells.reduce((p, c) => { return [...p, c.join("")] }).join("");
 }
 
 const wordMessage = ref(".");
