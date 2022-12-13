@@ -47,17 +47,34 @@
           </template>
         </div>
       </div>
-      <div class="row items-center justify-evenly">{{ wordsRemaining }} words remaining</div>
-      <div class="row items-center justify-evenly">{{ wordMessage }}</div>
-      <div class="row items-center justify-evenly">
-        <div v-if="error">{{ error }}</div>
-        <div v-else-if="!board">Loading board...</div>
-        <div class="game" v-else>
-          <VierkantleBoard
-            :board="board"
-            @word="word(null, $event)"
-            @partialWord="partialWord($event)"
-          />
+
+      <div class="row items-center q-ma-xl">
+        <div class="wordlist" v-show="wordListOpen">
+          <template v-for="[word, wstate] in wordsSortedByLength" :key="word">
+            <template v-if="!wstate.bonus">
+              <template v-if="wstate.guessed">
+                <tt>{{ word }}</tt><br/>
+              </template>
+              <template v-else>
+                <tt>{{ wordWithStars(word) }}</tt><br />
+              </template>
+            </template>
+          </template>
+        </div>
+        <div class="game-wrap items-center justify-evenly">
+          <div class="row items-center justify-evenly">{{ wordsRemaining }} words remaining</div>
+          <div class="row items-center justify-evenly">{{ wordMessage }}</div>
+          <div class="row items-center justify-evenly">
+            <div v-if="error">{{ error }}</div>
+            <div v-else-if="!board">Loading board...</div>
+            <div class="game" v-else>
+              <VierkantleBoard
+                :board="board"
+                @word="word(null, $event)"
+                @partialWord="partialWord($event)"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </q-page>
@@ -66,7 +83,7 @@
 
 <script setup lang="ts">
 import VierkantleBoard from 'components/VierkantleBoard.vue';
-import { Board } from 'src/components/models';
+import { Board, WordInBoard } from 'src/components/models';
 import { computed, onMounted, ref } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createChannel, createClient } from 'nice-grpc-web';
@@ -112,7 +129,7 @@ onMounted(async () => {
   }
 });
 
-const wordListOpen = ref(true)
+const wordListOpen = ref(false);
 
 function toggleWordList() {
   wordListOpen.value = !wordListOpen.value
@@ -120,6 +137,35 @@ function toggleWordList() {
 
 function boardLetters(b: Board): string {
   return b.cells.reduce((p, c) => { return [...p, c.join("")] }).join("");
+}
+
+const wordsSortedByLength = computed((): [string, WordInBoard][] => {
+  if (!board.value) {
+    return []
+  }
+  return Object.entries(board.value!.words).sort((a, b) => {
+    return a[0].length - b[0].length;
+  })
+});
+
+function wordWithStars(w: string): string {
+  function xStars(i: number): string {
+    var s = ""
+    for (; i > 0; --i) {
+      s += "*"
+    }
+    return s
+  }
+
+
+  switch(w.length) {
+    case 4: return w.substring(0, 1) + xStars(3)
+    case 5: return w.substring(0, 1) + xStars(4)
+    case 6: return w.substring(0, 2) + xStars(4)
+    case 7: return w.substring(0, 2) + xStars(4) + w.substring(6)
+    default:
+      return w.substring(0, 2) + xStars(w.length - 4) + w.substring(w.length - 2)
+  }
 }
 
 const wordMessage = ref(".");
@@ -293,7 +339,7 @@ function joinTeam() {
 .game {
   min-width: 300px;
   width: 100%;
-  max-width: min(600px, 80vh);
+  max-width: min(600px, 80vw, 80vh);
   aspect-ratio: 1 / 1;
 
   margin: 20px 40px;
@@ -304,13 +350,46 @@ function joinTeam() {
   display: none;
 }
 
-@media screen and (max-width: 400px) {
+.wordlist {
+  z-index: 500;
+  background: white;
+  border: 1px solid black;
+  overflow:scroll;
+  padding: 4px;
+}
+
+@media screen and (min-width: 500px) {
+  .wordlist {
+    width: 25%;
+    height: auto;
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  .game-wrap {
+    width: 75%;
+    height: auto;
+  }
+}
+
+@media screen and (max-width: 500px) {
   .game {
     font-size: 30px;
   }
 
   .only-if-small {
     display: block;
+  }
+
+  .wordlist {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+  }
+
+  .game-wrap {
+    width: 100%;
+    height: auto;
   }
 }
 
