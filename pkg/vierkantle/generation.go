@@ -60,3 +60,7 @@ func (b *Board) FillRandomly() {
 		}
 	}
 }
+
+func (b *Board) ResetCell(coord Coord) {
+	b.Cells[coord.Y][coord.X] = '?'
+}

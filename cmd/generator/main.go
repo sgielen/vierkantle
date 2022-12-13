@@ -41,11 +41,27 @@ func main() {
 		if err := board.PrefillRandomly(niceWord); err != nil {
 			log.Fatal("That prefill word doesn't fit in the board :-(")
 		}
-		board.FillRandomly()
 
-		words := board.WordsInBoard(dict, 4)
-		if !board.AreAllCellsUsed(words) {
-			// nevermind, skip this board
+		// Try to get this board filled up with random letters
+		// until it has words
+		subAttempts := 100
+		var words []vierkantle.WordInBoard
+		var unusedCells []vierkantle.Coord
+		for subAttempt := 0; subAttempt < subAttempts; subAttempt++ {
+			board.FillRandomly()
+			words = board.WordsInBoard(dict, 4)
+			unusedCells = board.FindUnusedCells(words)
+			if len(unusedCells) == 0 {
+				break
+			}
+
+			for _, unusedCell := range unusedCells {
+				board.ResetCell(unusedCell)
+			}
+		}
+
+		if len(unusedCells) != 0 {
+			// Couldn't fill up this board to have words, nevermind
 			continue
 		}
 

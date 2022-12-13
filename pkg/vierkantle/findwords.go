@@ -48,7 +48,7 @@ func (b *Board) wordsInBoard(words *map[string]WordInBoard, dict dictionary.Pref
 	}
 }
 
-func (b *Board) AreAllCellsUsed(words []WordInBoard) bool {
+func (b *Board) FindUnusedCells(words []WordInBoard) []Coord {
 	cells := make([][]bool, b.Height)
 	for y := range cells {
 		cells[y] = make([]bool, b.Width)
@@ -66,10 +66,22 @@ func (b *Board) AreAllCellsUsed(words []WordInBoard) bool {
 				cells[coord.Y][coord.X] = true
 				cellsRemaining -= 1
 				if cellsRemaining == 0 {
-					return true
+					return nil
 				}
 			}
 		}
 	}
-	return false
+	var unused []Coord
+	for y := range cells {
+		for x, v := range cells[y] {
+			if !v {
+				unused = append(unused, Coord{
+					X: x,
+					Y: y,
+				})
+			}
+		}
+	}
+
+	return unused
 }
