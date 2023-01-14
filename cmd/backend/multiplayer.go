@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
+	"time"
 
 	pb "github.com/sgielen/vierkantle/pkg/proto"
 )
@@ -35,17 +37,25 @@ func (s *vierkantleService) TeamStream(stream pb.VierkantleService_TeamStreamSer
 
 	defer func() {
 		if team != nil && playerName != "" {
+			s.log.Printf("player %s left team %q", playerName, team.GetToken())
 			team.PlayerLeaves(playerName)
 			team.BroadcastTeamInfo()
+
 			if team.IsEmpty() {
-				s.teams.ForgetTeam(team.GetToken())
+				// If the team was empty for 30 minutes, delete it
+				go func() {
+					if team.HasBeenEmptyFor(time.Minute * 30) {
+						s.log.Printf("team %q has been empty over 30 minutes, forgetting", team.GetToken())
+						s.teams.ForgetTeam(team.GetToken())
+					}
+				}()
 			}
 		}
 	}()
 
 	if create := msg.GetCreate(); create != nil {
 		team = s.teams.NewTeam()
-		s.log.Printf("New stream creates new team for %s, token %s", create.Name, team.GetToken())
+		s.log.Printf("New stream creates new team for %s, token %q", create.Name, team.GetToken())
 		if err := team.PlayerJoins(create.Name, stream); err != nil {
 			return stream.Send(&pb.TeamStreamServerMessage{
 				Response: &pb.TeamStreamServerMessage_Error{
@@ -57,18 +67,19 @@ func (s *vierkantleService) TeamStream(stream pb.VierkantleService_TeamStreamSer
 		}
 		playerName = create.Name
 	} else if join := msg.GetJoin(); join != nil {
-		s.log.Printf("New stream joins team %s for %s", join.Token, join.Name)
 		team = s.teams.GetTeam(join.Token)
 		if team == nil {
+			s.log.Printf("player %s tried to join team %q, but it doesn't exist", join.Name, join.Token)
 			return stream.Send(&pb.TeamStreamServerMessage{
 				Response: &pb.TeamStreamServerMessage_Error{
 					Error: &pb.ErrorResponse{
-						Error: "team not found",
+						Error: fmt.Sprintf("team not found for token %q", join.Token),
 					},
 				},
 			})
 		}
 		if err := team.PlayerJoins(join.Name, stream); err != nil {
+			s.log.Printf("player %s tried to join team %q, but failed with %s", join.Name, join.Token, err.Error())
 			return stream.Send(&pb.TeamStreamServerMessage{
 				Response: &pb.TeamStreamServerMessage_Error{
 					Error: &pb.ErrorResponse{
@@ -77,6 +88,7 @@ func (s *vierkantleService) TeamStream(stream pb.VierkantleService_TeamStreamSer
 				},
 			})
 		}
+		s.log.Printf("New stream joins team %q for %s", join.Token, join.Name)
 		playerName = join.Name
 	} else {
 		s.log.Printf("New stream sends invalid message %+v", msg)

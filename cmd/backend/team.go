@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	pb "github.com/sgielen/vierkantle/pkg/proto"
 )
 
 type VierkantleTeam struct {
-	mtx     sync.Mutex
-	token   string
-	players map[string]pb.VierkantleService_TeamStreamServer
+	mtx       sync.Mutex
+	token     string
+	players   map[string]pb.VierkantleService_TeamStreamServer
+	lastEmpty time.Time
 }
 
 type VierkantleTeams struct {
@@ -128,10 +130,19 @@ func (t *VierkantleTeam) PlayerLeaves(name string) {
 	t.mtx.Lock()
 	defer t.mtx.Unlock()
 	delete(t.players, name)
+	if len(t.players) == 0 {
+		t.lastEmpty = time.Now()
+	}
 }
 
 func (t *VierkantleTeam) IsEmpty() bool {
 	t.mtx.Lock()
 	defer t.mtx.Unlock()
 	return len(t.players) == 0
+}
+
+func (t *VierkantleTeam) HasBeenEmptyFor(duration time.Duration) bool {
+	t.mtx.Lock()
+	defer t.mtx.Unlock()
+	return len(t.players) == 0 && time.Since(t.lastEmpty) >= duration
 }
