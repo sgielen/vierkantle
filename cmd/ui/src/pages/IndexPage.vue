@@ -67,7 +67,7 @@
           </template>
         </div>
         <div class="game-wrap items-center justify-evenly">
-          <span class="progress row items-center justify-evenly">{{ wordsGuessed }} van {{ wordsTotal }}</span>
+          <span class="progress row items-center justify-evenly">{{ progress }}</span>
           <span class="message row items-center justify-evenly">{{ wordMessage }}</span>
           <div class="row items-center justify-evenly">
             <div v-if="error">{{ error }}</div>
@@ -189,7 +189,7 @@ const wordsTotal = computed(() => {
   }
 
   return Object.values(board.value.words).filter((w) => !w.bonus).length;
-})
+});
 
 const wordsGuessed = computed(() => {
   if (!board.value) {
@@ -197,7 +197,15 @@ const wordsGuessed = computed(() => {
   }
 
   return Object.values(board.value.words).filter((w) => !w.bonus && w.guessed).length;
-})
+});
+
+const progress = computed(() => {
+  if (wordsGuessed.value == wordsTotal.value) {
+    return "Klaar!";
+  } else {
+    return `${wordsGuessed.value} van ${wordsTotal.value}`;
+  }
+});
 
 function partialWord(word: string) {
   wordMessage.value = word;
