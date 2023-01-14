@@ -50,13 +50,18 @@
 
       <div class="row items-center q-ma-xl">
         <div class="wordlist" v-show="wordListOpen">
-          <template v-for="[word, wstate] in wordsSortedByLength" :key="word">
-            <template v-if="!wstate.bonus">
-              <template v-if="wstate.guessed">
-                <tt>{{ word }}</tt><br/>
-              </template>
-              <template v-else>
-                <tt>{{ wordWithStars(word) }}</tt><br />
+          <template v-for="(words, length) in wordsByLength" :key="length">
+            <template v-if="words && words.filter(f => !f[1].bonus).length">
+              <h6>{{ length }} letters</h6>
+              <template v-for="([word, wstate]) in words" :key="word">
+                <template v-if="!wstate.bonus">
+                  <template v-if="wstate.guessed">
+                    <tt>{{ word }}</tt><br/>
+                  </template>
+                  <template v-else>
+                    <tt>{{ wordWithStars(word) }}</tt><br />
+                  </template>
+                </template>
               </template>
             </template>
           </template>
@@ -139,13 +144,21 @@ function boardLetters(b: Board): string {
   return b.cells.reduce((p, c) => { return [...p, c.join("")] }).join("");
 }
 
-const wordsSortedByLength = computed((): [string, WordInBoard][] => {
+const wordsByLength = computed((): [string, WordInBoard][][] => {
   if (!board.value) {
     return []
   }
-  return Object.entries(board.value!.words).sort((a, b) => {
-    return a[0].length - b[0].length;
+  var res = [] as [string, WordInBoard][][]
+  Object.entries(board.value.words).forEach(([word, wordInBoard]) => {
+    res[word.length] ??= [];
+    res[word.length].push([word, wordInBoard]);
   })
+  for (let i = 0; i < res.length; ++i) {
+    if (res[i] && res[i].length) {
+      res[i] = res[i].sort((a, b) => { return a[0].length - b[0].length });
+    }
+  }
+  return res;
 });
 
 function wordWithStars(w: string): string {
@@ -356,6 +369,11 @@ function joinTeam() {
   border: 1px solid black;
   overflow:scroll;
   padding: 4px;
+
+  h6 {
+    margin: 0;
+    margin-top: 20px;
+  }
 }
 
 @media screen and (min-width: 500px) {
@@ -382,9 +400,14 @@ function joinTeam() {
   }
 
   .wordlist {
-    position: absolute;
+    /* make modal */
+    position: fixed;
+    top: 60px;
     left: 20px;
-    right: 20px;
+    width: calc(100vw - 40px);
+    height: calc(100vh - 80px);
+    overflow: scroll;
+    overscroll-behavior: contain;
   }
 
   .game-wrap {
