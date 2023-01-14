@@ -3,12 +3,19 @@
     <q-toolbar>
       <q-btn
         class="only-if-small"
-        flat
         dense
-        round
-        icon="menu"
-        aria-label="Menu"
+        color="secondary"
+        icon="spellcheck"
+        aria-label="Word list"
         @click="toggleWordList"
+      />
+
+      <q-btn
+        dense
+        color="secondary"
+        icon="groups"
+        aria-label="Multiplayer"
+        @click="toggleMultiplayer"
       />
 
       <q-toolbar-title>
@@ -19,34 +26,40 @@
 
   <q-page-container>
     <q-page>
-      <div class="row items-center justify-evenly" style="width: 400px; margin: 0 auto;">
-        <div class="col">
+      <q-dialog v-model="multiplayerOpen">
+        <q-card style="width: 600px">
+          <q-card-section>
+            <p class="text-h6">Multiplayer-modus</p>
+          </q-card-section>
+          <q-separator />
+          <q-card-section v-if="multiplayerError">
+            <span style="color: red">{{ multiplayerError }}</span>
+          </q-card-section>
           <template v-if="!multiplayer">
-            <p>
-              Je speelt alleen. Dat is prima, geen oordeel. Maar als je wel vrienden
-              hebt, kies dan je naam en maak of join een team:
-            </p>
-            <p>
-              Je naam: <input type="text" v-model="playerName" @change="changePlayerName" />
-            </p>
-            <p>
-              <button @click="createTeam">Maak een team</button>
-            </p>
-            <p>
-              Of: <input type="text" v-model="token" placeholder="Code" /> <button @click="joinTeam">Join een team</button>
-            </p>
-            <p>
-              <span v-if="multiplayerError" style="color: red;">{{ multiplayerError }}</span>
-            </p>
+            <q-card-section>
+              Vul je spelernaam in, en maak of join een team:
+              <q-input label="Je naam" v-model="playerName" @update:model-value="changePlayerName" />
+            </q-card-section>
+            <q-card-section>
+              <q-btn @click="createTeam" label="Maak een team" /><br />
+            </q-card-section>
+            <q-separator />
+            <q-card-section>
+              Of:
+              <q-input v-model="token" label="Code" />
+              <q-btn @click="joinTeam" label="Join een team" />
+            </q-card-section>
           </template>
           <template v-else>
-            <p>
+            <q-card-section>
               Je speelt in een team met {{ otherPlayers }}. Nodig meer mensen uit met
-              de volgende code: <code>{{ multiplayer.token }}</code>
-            </p>
+              de volgende code: <code>{{ multiplayer.token }}</code><br />
+              <q-btn @click="multiplayerOpen = false" color="primary" label="Sluiten" />
+              <q-btn @click="stopMultiplayer" label="Verlaat team" />
+            </q-card-section>
           </template>
-        </div>
-      </div>
+        </q-card>
+      </q-dialog>
 
       <div class="game-page row items-center q-ma-xl">
         <div class="wordlist" v-show="wordListOpen">
@@ -56,10 +69,10 @@
               <template v-for="([word, wstate]) in words" :key="word">
                 <template v-if="!wstate.bonus">
                   <template v-if="wstate.guessed">
-                    <tt>{{ word }}</tt><br/>
+                    <code>{{ word }}</code><br/>
                   </template>
                   <template v-else>
-                    <tt>{{ wordWithStars(word) }}</tt><br />
+                    <code>{{ wordWithStars(word) }}</code><br />
                   </template>
                 </template>
               </template>
@@ -91,9 +104,8 @@ import VierkantleBoard from 'components/VierkantleBoard.vue';
 import { Board, WordInBoard } from 'src/components/models';
 import { computed, onMounted, ref } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
-import { createChannel, createClient } from 'nice-grpc-web';
-import { VierkantleServiceDefinition, VierkantleServiceClient, TeamStreamClientMessage } from '../services/vierkantle';
-import { grpc } from "@improbable-eng/grpc-web";
+import { Multiplayer } from 'src/services/multiplayer';
+import { TeamStreamServerMessage } from 'src/services/vierkantle';
 
 const board_ = useStorage<Board | undefined>("board", undefined, undefined, { serializer: StorageSerializers.object });
 
@@ -103,9 +115,6 @@ const board = computed(() => {
 
 const error = ref("");
 
-const host = window.location.origin + "/api";
-const channel = createChannel(host, grpc.WebsocketTransport());
-const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
 
 onMounted(async () => {
   // TODO: Sometimes, I want to replace the board during the
@@ -138,6 +147,12 @@ const wordListOpen = ref(false);
 
 function toggleWordList() {
   wordListOpen.value = !wordListOpen.value
+}
+
+const multiplayerOpen = ref(false);
+
+function toggleMultiplayer() {
+  multiplayerOpen.value = !multiplayerOpen.value;
 }
 
 function boardLetters(b: Board): string {
@@ -237,57 +252,44 @@ function word(who: string | null, word: string) {
   }
   wordInBoard.guessed = true
   if (multiplayer.value && !who) {
-    multiplayer.value.queue.push({
-      word: {word}
-    })
+    multiplayer.value.sendWord(word);
   }
 }
 
-class AsyncMessageQueue<T> {
-  private closed = false;
-  private queue: T[] = [];
-  private waiter: (() => void) | null = null;
-
-  public async *[Symbol.asyncIterator]() {
-    while (!this.closed) {
-      while (this.queue.length > 0) {
-        yield this.queue.shift()!;
-      }
-      await new Promise<void>((resolve) => this.waiter = resolve);
-    }
-  }
-  private wake() {
-    if (this.waiter) {
-      this.waiter();
-      this.waiter = null;
-    }
-  }
-  public push(message: T) {
-    this.queue.push(message);
-    this.wake();
-  }
-  public close() {
-    this.closed = true;
-    this.wake();
-  }
-}
-
-interface MultiplayerStatus {
-  token: string
-  currentName: string
-  players: string[]
-  queue: AsyncMessageQueue<TeamStreamClientMessage>;
-}
-
-const playerName = ref<string>("Gast");
-const token = ref<string>();
-const multiplayer = ref<MultiplayerStatus>()
+const playerName = useStorage("name", "Gast");
+const token = useStorage("token", "");
+const multiplayer = ref<Multiplayer>()
 const multiplayerError = ref<string>();
+
+function onMessage(message: TeamStreamServerMessage): void {
+  if (message.error) {
+    console.log(message.error);
+  } else if (message.word) {
+    word(message.word.player, message.word.word);
+  }
+}
+
+onMounted(async () => {
+  if (playerName.value && token.value) {
+    // Try to optionally connect to the same multiplayer team. If it does not
+    // succeed, it's probably an old team, just forget the token.
+    const m = new Multiplayer(playerName.value, onMessage, token.value);
+    try {
+      await m.connect();
+      multiplayer.value = m;
+    } catch(e) {
+      if (typeof e == "string" && e.includes("team not found")) {
+        token.value = "";
+      }
+    }
+  }
+})
+
 const otherPlayers = computed(() => {
   if (!multiplayer.value) {
     return "niemand anders";
   }
-  const list = multiplayer.value.players.filter((f) => f != multiplayer.value!.currentName);
+  const list = multiplayer.value.players.filter((f) => f != multiplayer.value!.name);
   if (list.length == 0) {
     return "niemand anders";
   } else if (list.length == 1) {
@@ -298,64 +300,46 @@ const otherPlayers = computed(() => {
   }
 });
 
-function changePlayerName() {
-  if (multiplayer.value && playerName.value != multiplayer.value.currentName) {
-    // send message to change player name; when
-    // we receive new teaminfo, change playerName.value
+async function changePlayerName() {
+  if (multiplayer.value && playerName.value != multiplayer.value.name) {
+    await multiplayer.value.changePlayerName(playerName.value);
   }
 }
 
-async function openStream(token: string | null, name: string) {
-  const queue = new AsyncMessageQueue<TeamStreamClientMessage>();
-  multiplayerError.value = undefined;
-  multiplayer.value = undefined;
-  try {
-    const stream = client.teamStream(queue);
-    if (!token) {
-      queue.push({
-        create: { name },
-      })
-    } else {
-      queue.push({
-        join: { token, name },
-      })
-    }
-    for await (const response of stream) {
-      console.log("have message", response);
-      if (response.error) {
-        throw response.error.error;
-      } else if (response.team) {
-        multiplayer.value = {
-          token: response.team.token,
-          currentName: response.team.yourName,
-          players: response.team.players,
-          queue,
-        };
-      } else if (response.word) {
-        word(response.word.player, response.word.word);
+async function createTeam() {
+  if (playerName.value && !multiplayer.value) {
+    const m = new Multiplayer(playerName.value, onMessage);
+    try {
+      await m.connect();
+      multiplayer.value = m;
+    } catch(e) {
+      if (typeof e === "string") {
+        multiplayerError.value = e;
+      } else {
+        multiplayerError.value = JSON.stringify(e, null, 0);
       }
     }
-  } catch (e) {
-    console.log("failed with: ", e);
-    if (typeof e === "string") {
-      multiplayerError.value = e;
-    } else {
-      multiplayerError.value = JSON.stringify(e, null, 0);
-    }
-    queue.close();
   }
 }
 
-function createTeam() {
-  if (playerName.value) {
-    openStream(null, playerName.value);
-  }
-}
-
-function joinTeam() {
+async function joinTeam() {
   if (token.value && playerName.value) {
-    openStream(token.value, playerName.value);
+    const m = new Multiplayer(playerName.value, onMessage, token.value);
+    try {
+      await m.connect();
+      multiplayer.value = m;
+    } catch(e) {
+      if (typeof e === "string") {
+        multiplayerError.value = e;
+      } else {
+        multiplayerError.value = JSON.stringify(e, null, 0);
+      }
+    }
   }
+}
+
+async function stopMultiplayer() {
+  multiplayer.value = undefined;
 }
 </script>
 
