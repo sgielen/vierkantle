@@ -2,7 +2,7 @@
   <q-header elevated>
     <q-toolbar>
       <q-btn
-        class="only-if-small"
+        class="only-if-small q-mx-sm"
         dense
         color="secondary"
         icon="spellcheck"
@@ -11,6 +11,7 @@
       />
 
       <q-btn
+        class="q-mx-sm"
         dense
         color="secondary"
         icon="groups"
