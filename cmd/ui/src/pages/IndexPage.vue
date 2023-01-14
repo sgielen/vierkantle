@@ -48,7 +48,7 @@
         </div>
       </div>
 
-      <div class="row items-center q-ma-xl">
+      <div class="game-page row items-center q-ma-xl">
         <div class="wordlist" v-show="wordListOpen">
           <template v-for="(words, length) in wordsByLength" :key="length">
             <template v-if="words && words.filter(f => !f[1].bonus).length">
@@ -67,8 +67,8 @@
           </template>
         </div>
         <div class="game-wrap items-center justify-evenly">
-          <div class="row items-center justify-evenly">{{ wordsRemaining }} words remaining</div>
-          <div class="row items-center justify-evenly">{{ wordMessage }}</div>
+          <span class="progress row items-center justify-evenly">{{ wordsGuessed }} van {{ wordsTotal }}</span>
+          <span class="message row items-center justify-evenly">{{ wordMessage }}</span>
           <div class="row items-center justify-evenly">
             <div v-if="error">{{ error }}</div>
             <div v-else-if="!board">Loading board...</div>
@@ -181,20 +181,23 @@ function wordWithStars(w: string): string {
   }
 }
 
-const wordMessage = ref(".");
+const wordMessage = ref("");
 
-const wordsRemaining = computed(() => {
+const wordsTotal = computed(() => {
   if (!board.value) {
     return 0;
   }
-  let r = 0;
-  Object.values(board.value.words).forEach((word) => {
-    if (!word.bonus && !word.guessed) {
-      r += 1;
-    }
-  });
-  return r;
-});
+
+  return Object.values(board.value.words).filter((w) => !w.bonus).length;
+})
+
+const wordsGuessed = computed(() => {
+  if (!board.value) {
+    return 0;
+  }
+
+  return Object.values(board.value.words).filter((w) => !w.bonus && w.guessed).length;
+})
 
 function partialWord(word: string) {
   wordMessage.value = word;
@@ -349,6 +352,23 @@ function joinTeam() {
 </script>
 
 <style lang="scss">
+.game-wrap {
+  .progress {
+    margin: 0;
+    margin-top: 20px;
+    line-height: 3rem;
+    height: 3rem;
+    font-size: 3rem;
+  }
+  .message {
+    margin: 0;
+    margin-top: 10px;
+    line-height: 2.5rem;
+    height: 2.5rem;
+    font-size: 2.125rem;
+  }
+}
+
 .game {
   min-width: 300px;
   width: 100%;
@@ -377,6 +397,10 @@ function joinTeam() {
 }
 
 @media screen and (min-width: 500px) {
+  .game-page {
+    margin: 12px 48px;
+  }
+
   .wordlist {
     width: 25%;
     height: auto;
