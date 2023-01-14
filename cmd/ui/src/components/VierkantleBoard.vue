@@ -15,10 +15,10 @@
             :state="cellState(x, y)"
             :show-begins="true"
             :show-used="true"
-            @mousedown="dragStart(x, y, $event.target)"
-            @mouseenter="dragMove(x, y, $event.target)"
-            @vk_touchstart="dragStart(x, y, $event.target)"
-            @vk_touchmove="dragMove(x, y, $event.target)"
+            @mousedown="dragStart(x, y, $event)"
+            @mousemove="dragMove(x, y, $event)"
+            @vk_touchstart="dragStart(x, y, $event)"
+            @vk_touchmove="dragMove(x, y, $event)"
           />
         </template>
       </template>
@@ -90,17 +90,28 @@ const wordPath = computed(() => {
     reduce((prev, current) => prev + current, "");
 })
 
-function dragStart(x: number, y: number, element: HTMLElement) {
+function dragStart(x: number, y: number, event: MouseEvent | VierkantleTouchEvent) {
   path.value = [{
-    element,
+    element: event.currentTarget as HTMLElement,
     coord: {x, y},
   }];
   emit("partialWord", wordPath.value);
 }
 
-function dragMove(x: number, y: number, element: HTMLElement) {
+function dragMove(x: number, y: number, event: MouseEvent | VierkantleTouchEvent) {
   if (path.value.length == 0) {
     // not pathing, ignore mouseover
+    return
+  }
+
+  // Only trigger on moves that are close to the center of the element
+  const element = event.currentTarget as HTMLElement;
+  const elementRect = element.getBoundingClientRect();
+  const xFactor = (event.clientX - elementRect.x) / elementRect.width;
+  const yFactor = (event.clientY - elementRect.y) / elementRect.height;
+  const padding = 0.25;
+  if (xFactor < padding || xFactor > (padding + 0.5) || yFactor < padding || yFactor > (padding + 0.5)) {
+    // Event occurred outside of the action zone, so ignore it
     return
   }
 
@@ -142,18 +153,19 @@ function dragEnd() {
 // trigger touch events on .container, then move them downwards to the cells
 // using a custom event. This custom event is ignored on all elements other
 // than our VierkantleCells.
-class VierkantleTouchStartEvent extends Event {}
-class VierkantleTouchMoveEvent extends Event {}
+class VierkantleTouchEvent extends Event {
+  public clientX!: number;
+  public clientY!: number;
+}
 
 function touchEvent(type: "start" | "move", event: TouchEvent) {
   event.preventDefault();
   var elements = document.elementsFromPoint(event.touches[0].clientX, event.touches[0].clientY)
   for(let element of elements) {
-    if (type == "start") {
-      element.dispatchEvent(new VierkantleTouchStartEvent("vk_touchstart"));
-    } else {
-      element.dispatchEvent(new VierkantleTouchMoveEvent("vk_touchmove"));
-    }
+    const vkEvent = new VierkantleTouchEvent("vk_touch" + type);
+    vkEvent.clientX = event.touches[0].clientX;
+    vkEvent.clientY = event.touches[0].clientY;
+    element.dispatchEvent(vkEvent);
   }
 }
 </script>
