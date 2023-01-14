@@ -401,6 +401,10 @@ function joinTeam() {
   h6 {
     margin: 0;
     margin-top: 20px;
+
+    &:first-of-type {
+      margin-top: 0;
+    }
   }
 }
 
