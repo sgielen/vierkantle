@@ -88,7 +88,7 @@
         </div>
         <div class="game-wrap items-center justify-evenly">
           <span class="progress row items-center justify-evenly">{{ progress }}</span>
-          <span class="message row items-center justify-evenly">{{ wordMessage }}</span>
+          <span ref="messageSpan" class="message row items-center justify-evenly">{{ wordMessage }}</span>
           <div class="row items-center justify-evenly">
             <div v-if="error">{{ error }}</div>
             <div v-else-if="!board">Loading board...</div>
@@ -204,6 +204,31 @@ function wordWithStars(w: string): string {
 }
 
 const wordMessage = ref("");
+const messageSpan = ref<HTMLSpanElement>();
+
+const message_max_font_size = computed(() => {
+  console.log(wordMessage.value.length);
+  const spanStyle = window.getComputedStyle(messageSpan.value!, null);
+  const fontWeight = spanStyle.getPropertyValue('font-weight') || 'normal';
+  const fontFamily = spanStyle.getPropertyValue('font-family') || 'sans-serif';
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  let fontSize = 34;
+  if (!ctx) {
+    return fontSize;
+  }
+
+  while (fontSize > 0) {
+    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+    const metrics = ctx.measureText(wordMessage.value);
+    if (metrics.width <= window.innerWidth) {
+      return `${fontSize}px`;
+    }
+    fontSize -= 1;
+  }
+  return 1;
+});
 
 const wordsTotal = computed(() => {
   if (!board.value) {
@@ -393,7 +418,9 @@ async function stopMultiplayer() {
     margin-top: 10px;
     line-height: 2.5rem;
     height: 2.5rem;
-    font-size: 2.125rem;
+    font-size: v-bind(message_max_font_size);
+
+    white-space: nowrap;
   }
 }
 
