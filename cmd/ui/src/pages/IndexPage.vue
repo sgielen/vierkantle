@@ -38,23 +38,29 @@
           </q-card-section>
           <template v-if="!multiplayer">
             <q-card-section>
-              Vul je spelernaam in, en maak of join een team:
-              <q-input label="Je naam" v-model="playerName" @update:model-value="changePlayerName" />
-            </q-card-section>
-            <q-card-section>
-              <q-btn @click="createTeam" label="Maak een team" /><br />
+              Vul je spelernaam in, en join of maak een team:
+              <q-input dense outlined label="Je naam" v-model="playerName" @update:model-value="changePlayerName" />
             </q-card-section>
             <q-separator />
             <q-card-section>
+              <q-input dense outlined v-model="token" label="Code" />
+              <q-btn @click="joinTeam" label="Join een team" color="primary" />
+            </q-card-section>
+            <q-card-section>
               Of:
-              <q-input v-model="token" label="Code" />
-              <q-btn @click="joinTeam" label="Join een team" />
+              <q-btn @click="createTeam" label="Maak een team" color="primary" />
             </q-card-section>
           </template>
           <template v-else>
             <q-card-section>
-              Je speelt in een team met {{ otherPlayers }}. Nodig meer mensen uit met
-              de volgende code: <code>{{ multiplayer.token }}</code><br />
+              Je speelt in een team met {{ otherPlayers }}. Nodig meer mensen
+              uit via de volgende URL:
+              <code
+                @click="setClipboard(multiplayerUrl)"
+              >{{ multiplayerUrl }}</code> (<span>{{ copyText }}</span>)
+            </q-card-section>
+            <q-separator />
+            <q-card-section>
               <q-btn @click="multiplayerOpen = false" color="primary" label="Sluiten" />
               <q-btn @click="stopMultiplayer" label="Verlaat team" />
             </q-card-section>
@@ -257,7 +263,7 @@ function word(who: string | null, word: string) {
   }
 }
 
-const playerName = useStorage("name", "Gast");
+const playerName = useStorage("name", "");
 const token = useStorage("token", "");
 const multiplayer = ref<Multiplayer>()
 const multiplayerError = ref<string>();
@@ -270,7 +276,33 @@ function onMessage(message: TeamStreamServerMessage): void {
   }
 }
 
+const multiplayerUrl = computed(() => {
+  console.log(window.location);
+  return window.location.origin + "/#" + multiplayer.value?.token;
+})
+
+const copyText = ref("klik om te kopiëren");
+
+async function setClipboard(v: string) {
+  await navigator.clipboard.writeText(v);
+  copyText.value = "gekopieerd!";
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  copyText.value = "klik om te kopiëren";
+}
+
 onMounted(async () => {
+  if (window.location.hash.length > 2) {
+    token.value = window.location.hash.substring(1);
+    window.location.hash = "";
+  }
+  if (token.value && !playerName.value) {
+    // They have a token, but not a player name, so let's get that first
+    setTimeout(() => {
+      console.log("multiplayerOpen was (3) ", multiplayerOpen.value);
+      multiplayerOpen.value = true;
+    }, 100);
+    return;
+  }
   if (playerName.value && token.value) {
     // Try to optionally connect to the same multiplayer team. If it does not
     // succeed, it's probably an old team, just forget the token.
@@ -308,6 +340,7 @@ async function changePlayerName() {
 }
 
 async function createTeam() {
+  multiplayerError.value = undefined;
   if (playerName.value && !multiplayer.value) {
     const m = new Multiplayer(playerName.value, onMessage);
     try {
@@ -324,6 +357,7 @@ async function createTeam() {
 }
 
 async function joinTeam() {
+  multiplayerError.value = undefined;
   if (token.value && playerName.value) {
     const m = new Multiplayer(playerName.value, onMessage, token.value);
     try {
@@ -340,6 +374,7 @@ async function joinTeam() {
 }
 
 async function stopMultiplayer() {
+  multiplayerError.value = undefined;
   multiplayer.value = undefined;
 }
 </script>

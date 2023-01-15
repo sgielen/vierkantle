@@ -57,8 +57,10 @@ export class Multiplayer {
     this.runBackground(stream, haveFirstMessage);
     const response = await firstMessage;
     if (response.error) {
+      this.disconnect();
       throw response.error.error;
     } else if (!response.team) {
+      this.disconnect();
       throw "Invalid first message: " + JSON.stringify(response, null, 0);
     }
   }
@@ -80,9 +82,16 @@ export class Multiplayer {
     } catch (e) {
       console.log("Stream error: ", e);
     }
-    // stream closed, wait a bit then try to reconnect
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    this.connect();
+
+    if (this.queue) {
+      // stream closed, but we should be connected, wait a bit then try to reconnect
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      try {
+        await this.connect();
+      } catch(e) {
+        console.log(e);
+      }
+    }
   }
 
   public async changePlayerName(name: string): Promise<void> {
