@@ -4,6 +4,13 @@ import * as _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "nl.vierkantle";
 
+export interface GetBoardRequest {
+}
+
+export interface GetBoardResponse {
+  board: Uint8Array;
+}
+
 export interface CreateTeamRequest {
   name: string;
 }
@@ -69,6 +76,73 @@ export interface TeamStreamServerMessage {
   team?: TeamInfoResponse | undefined;
   word?: WordGuessedResponse | undefined;
 }
+
+function createBaseGetBoardRequest(): GetBoardRequest {
+  return {};
+}
+
+export const GetBoardRequest = {
+  encode(_: GetBoardRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetBoardRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetBoardRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(_: DeepPartial<GetBoardRequest>): GetBoardRequest {
+    const message = createBaseGetBoardRequest();
+    return message;
+  },
+};
+
+function createBaseGetBoardResponse(): GetBoardResponse {
+  return { board: new Uint8Array() };
+}
+
+export const GetBoardResponse = {
+  encode(message: GetBoardResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.board.length !== 0) {
+      writer.uint32(10).bytes(message.board);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetBoardResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetBoardResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.board = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<GetBoardResponse>): GetBoardResponse {
+    const message = createBaseGetBoardResponse();
+    message.board = object.board ?? new Uint8Array();
+    return message;
+  },
+};
 
 function createBaseCreateTeamRequest(): CreateTeamRequest {
   return { name: "" };
@@ -485,6 +559,14 @@ export const VierkantleServiceDefinition = {
   name: "VierkantleService",
   fullName: "nl.vierkantle.VierkantleService",
   methods: {
+    getBoard: {
+      name: "GetBoard",
+      requestType: GetBoardRequest,
+      requestStream: false,
+      responseType: GetBoardResponse,
+      responseStream: false,
+      options: {},
+    },
     teamStream: {
       name: "TeamStream",
       requestType: TeamStreamClientMessage,
@@ -497,6 +579,7 @@ export const VierkantleServiceDefinition = {
 } as const;
 
 export interface VierkantleServiceImplementation<CallContextExt = {}> {
+  getBoard(request: GetBoardRequest, context: CallContext & CallContextExt): Promise<DeepPartial<GetBoardResponse>>;
   teamStream(
     request: AsyncIterable<TeamStreamClientMessage>,
     context: CallContext & CallContextExt,
@@ -504,6 +587,7 @@ export interface VierkantleServiceImplementation<CallContextExt = {}> {
 }
 
 export interface VierkantleServiceClient<CallOptionsExt = {}> {
+  getBoard(request: DeepPartial<GetBoardRequest>, options?: CallOptions & CallOptionsExt): Promise<GetBoardResponse>;
   teamStream(
     request: AsyncIterable<DeepPartial<TeamStreamClientMessage>>,
     options?: CallOptions & CallOptionsExt,

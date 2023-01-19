@@ -112,8 +112,9 @@ import { Board, WordInBoard } from 'src/components/models';
 import { computed, onMounted, ref, reactive } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { Multiplayer } from 'src/services/multiplayer';
-import { TeamStreamServerMessage } from 'src/services/vierkantle';
 import VierkantleTop from 'src/components/VierkantleTop.vue';
+import { createChannel, createClient } from 'nice-grpc-web';
+import { VierkantleServiceDefinition, VierkantleServiceClient, TeamStreamServerMessage } from '../services/vierkantle';
 
 const board_ = useStorage<Board | undefined>("board", undefined, undefined, { serializer: StorageSerializers.object });
 
@@ -122,7 +123,7 @@ const board = computed(() => {
 });
 
 const error = ref("");
-
+const backendAddress = window.location.origin + "/api";
 
 onMounted(async () => {
   // TODO: Sometimes, I want to replace the board during the
@@ -141,8 +142,10 @@ onMounted(async () => {
 
   // Download a new board
   try {
-    const f = await fetch("/board.json", {cache: 'no-store'});
-    const board = await f.json() as Board;
+    const channel = createChannel(backendAddress);
+    const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
+    const boardResponse = await client.getBoard({});
+    const board = JSON.parse(new TextDecoder().decode(boardResponse.board));
     if (!board_.value || boardLetters(board) != boardLetters(board_.value)) {
       board_.value = board;
     }
@@ -283,6 +286,10 @@ async function setClipboard(v: string) {
   copyText.value = "klik om te kopiëren";
 }
 
+function newMultiplayer(token?: string): Multiplayer {
+  return reactive(new Multiplayer(backendAddress, playerName.value, onMessage, token)) as Multiplayer;
+}
+
 onMounted(async () => {
   if (window.location.hash.length > 2) {
     token.value = window.location.hash.substring(1);
@@ -298,7 +305,7 @@ onMounted(async () => {
   if (playerName.value && token.value) {
     // Try to optionally connect to the same multiplayer team. If it does not
     // succeed, it's probably an old team, just forget the token.
-    const m = reactive(new Multiplayer(playerName.value, onMessage, token.value));
+    const m = newMultiplayer(token.value);
     try {
       await m.connect();
       multiplayer.value = m as Multiplayer;
@@ -334,7 +341,7 @@ async function changePlayerName() {
 async function createTeam() {
   multiplayerError.value = undefined;
   if (playerName.value && !multiplayer.value) {
-    const m = new Multiplayer(playerName.value, onMessage);
+    const m = newMultiplayer();
     try {
       await m.connect();
       multiplayer.value = m;
@@ -352,7 +359,7 @@ async function createTeam() {
 async function joinTeam() {
   multiplayerError.value = undefined;
   if (token.value && playerName.value) {
-    const m = new Multiplayer(playerName.value, onMessage, token.value);
+    const m = newMultiplayer(token.value);
     try {
       await m.connect();
       multiplayer.value = m;

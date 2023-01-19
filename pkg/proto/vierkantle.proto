@@ -5,7 +5,16 @@ package nl.vierkantle;
 option go_package = "github.com/sgielen/vierkantle/pkg/proto";
 
 service VierkantleService {
+  rpc GetBoard(GetBoardRequest) returns (GetBoardResponse) {}
+
   rpc TeamStream(stream TeamStreamClientMessage) returns (stream TeamStreamServerMessage) {}
+}
+
+message GetBoardRequest {
+}
+
+message GetBoardResponse {
+  bytes board = 1;
 }
 
 message CreateTeamRequest {

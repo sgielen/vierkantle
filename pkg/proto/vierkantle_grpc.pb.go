@@ -18,6 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type VierkantleServiceClient interface {
+	GetBoard(ctx context.Context, in *GetBoardRequest, opts ...grpc.CallOption) (*GetBoardResponse, error)
 	TeamStream(ctx context.Context, opts ...grpc.CallOption) (VierkantleService_TeamStreamClient, error)
 }
 
@@ -27,6 +28,15 @@ type vierkantleServiceClient struct {
 
 func NewVierkantleServiceClient(cc grpc.ClientConnInterface) VierkantleServiceClient {
 	return &vierkantleServiceClient{cc}
+}
+
+func (c *vierkantleServiceClient) GetBoard(ctx context.Context, in *GetBoardRequest, opts ...grpc.CallOption) (*GetBoardResponse, error) {
+	out := new(GetBoardResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/GetBoard", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *vierkantleServiceClient) TeamStream(ctx context.Context, opts ...grpc.CallOption) (VierkantleService_TeamStreamClient, error) {
@@ -64,6 +74,7 @@ func (x *vierkantleServiceTeamStreamClient) Recv() (*TeamStreamServerMessage, er
 // All implementations should embed UnimplementedVierkantleServiceServer
 // for forward compatibility
 type VierkantleServiceServer interface {
+	GetBoard(context.Context, *GetBoardRequest) (*GetBoardResponse, error)
 	TeamStream(VierkantleService_TeamStreamServer) error
 }
 
@@ -71,6 +82,9 @@ type VierkantleServiceServer interface {
 type UnimplementedVierkantleServiceServer struct {
 }
 
+func (UnimplementedVierkantleServiceServer) GetBoard(context.Context, *GetBoardRequest) (*GetBoardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBoard not implemented")
+}
 func (UnimplementedVierkantleServiceServer) TeamStream(VierkantleService_TeamStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method TeamStream not implemented")
 }
@@ -84,6 +98,24 @@ type UnsafeVierkantleServiceServer interface {
 
 func RegisterVierkantleServiceServer(s grpc.ServiceRegistrar, srv VierkantleServiceServer) {
 	s.RegisterService(&VierkantleService_ServiceDesc, srv)
+}
+
+func _VierkantleService_GetBoard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBoardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).GetBoard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/GetBoard",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).GetBoard(ctx, req.(*GetBoardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _VierkantleService_TeamStream_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -118,7 +150,12 @@ func (x *vierkantleServiceTeamStreamServer) Recv() (*TeamStreamClientMessage, er
 var VierkantleService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "nl.vierkantle.VierkantleService",
 	HandlerType: (*VierkantleServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetBoard",
+			Handler:    _VierkantleService_GetBoard_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "TeamStream",

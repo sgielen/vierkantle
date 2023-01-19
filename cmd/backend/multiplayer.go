@@ -3,23 +3,10 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"time"
 
 	pb "github.com/sgielen/vierkantle/pkg/proto"
 )
-
-type vierkantleService struct {
-	log   *log.Logger
-	teams VierkantleTeams
-}
-
-func NewVierkantleService(log *log.Logger) *vierkantleService {
-	return &vierkantleService{
-		log:   log,
-		teams: *NewVierkantleTeams(),
-	}
-}
 
 func (s *vierkantleService) TeamStream(stream pb.VierkantleService_TeamStreamServer) error {
 	// The first message should be create / join

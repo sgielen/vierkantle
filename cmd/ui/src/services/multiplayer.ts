@@ -3,13 +3,15 @@ import { VierkantleServiceDefinition, VierkantleServiceClient, TeamStreamClientM
 import { grpc } from "@improbable-eng/grpc-web";
 
 export class Multiplayer {
+  public address: string;
   public name: string;
   public onMessage: (msg: TeamStreamServerMessage) => void;
   public token: string;
   public players: string[];
   private queue: AsyncMessageQueue<TeamStreamClientMessage> | undefined;
 
-  constructor(name: string, onMessage: (msg: TeamStreamServerMessage) => void, token?: string) {
+  constructor(address: string, name: string, onMessage: (msg: TeamStreamServerMessage) => void, token?: string) {
+    this.address = address;
     this.name = name;
     this.onMessage = onMessage;
     this.token = token ?? "";
@@ -31,8 +33,7 @@ export class Multiplayer {
   public async connect(): Promise<void> {
     this.disconnect();
 
-    const host = window.location.origin + "/api";
-    const channel = createChannel(host, grpc.WebsocketTransport());
+    const channel = createChannel(this.address, grpc.WebsocketTransport());
     const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
     this.queue = new AsyncMessageQueue<TeamStreamClientMessage>();
 
