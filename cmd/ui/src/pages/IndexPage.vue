@@ -28,7 +28,7 @@
   <q-page-container>
     <q-page>
       <q-dialog v-model="multiplayerOpen">
-        <q-card style="width: 600px">
+        <q-card style="width: 650px">
           <q-card-section>
             <p class="text-h6">Multiplayer-modus</p>
           </q-card-section>
@@ -54,9 +54,10 @@
           <template v-else>
             <q-card-section>
               Je speelt in een team met {{ otherPlayers }}. Nodig meer mensen
-              uit via de volgende URL:
+              uit via de volgende URL:<br />
               <code
                 @click="setClipboard(multiplayerUrl)"
+                style="cursor: pointer;"
               >{{ multiplayerUrl }}</code> (<span>{{ copyText }}</span>)
             </q-card-section>
             <q-separator />
