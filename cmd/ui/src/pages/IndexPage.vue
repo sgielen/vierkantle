@@ -109,7 +109,7 @@
 <script setup lang="ts">
 import VierkantleBoard from 'components/VierkantleBoard.vue';
 import { Board, WordInBoard } from 'src/components/models';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, reactive } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { Multiplayer } from 'src/services/multiplayer';
 import { TeamStreamServerMessage } from 'src/services/vierkantle';
@@ -323,7 +323,6 @@ onMounted(async () => {
   if (token.value && !playerName.value) {
     // They have a token, but not a player name, so let's get that first
     setTimeout(() => {
-      console.log("multiplayerOpen was (3) ", multiplayerOpen.value);
       multiplayerOpen.value = true;
     }, 100);
     return;
@@ -331,10 +330,10 @@ onMounted(async () => {
   if (playerName.value && token.value) {
     // Try to optionally connect to the same multiplayer team. If it does not
     // succeed, it's probably an old team, just forget the token.
-    const m = new Multiplayer(playerName.value, onMessage, token.value);
+    const m = reactive(new Multiplayer(playerName.value, onMessage, token.value));
     try {
       await m.connect();
-      multiplayer.value = m;
+      multiplayer.value = m as Multiplayer;
     } catch(e) {
       if (typeof e == "string" && e.includes("team not found")) {
         token.value = "";
@@ -371,6 +370,7 @@ async function createTeam() {
     try {
       await m.connect();
       multiplayer.value = m;
+      token.value = m.token;
     } catch(e) {
       if (typeof e === "string") {
         multiplayerError.value = e;
