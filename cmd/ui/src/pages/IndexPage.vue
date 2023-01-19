@@ -463,6 +463,7 @@ async function stopMultiplayer() {
   .wordlist {
     width: 25%;
     height: auto;
+    max-height: calc(100vh - 80px);
     display: block !important;
     visibility: visible !important;
   }
