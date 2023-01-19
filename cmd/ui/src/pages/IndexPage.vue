@@ -71,21 +71,7 @@
 
       <div class="game-page row items-center q-ma-xl">
         <div class="wordlist" v-show="wordListOpen">
-          <template v-for="(words, length) in wordsByLength" :key="length">
-            <template v-if="words && words.filter(f => !f[1].bonus).length">
-              <h6>{{ length }} letters</h6>
-              <template v-for="([word, wstate]) in words" :key="word">
-                <template v-if="!wstate.bonus">
-                  <template v-if="wstate.guessed">
-                    <code>{{ word }}</code><br/>
-                  </template>
-                  <template v-else>
-                    <code>{{ wordWithStars(word) }}</code><br />
-                  </template>
-                </template>
-              </template>
-            </template>
-          </template>
+          <WordList v-if="board" :words="board.words" />
         </div>
         <div class="game-wrap items-center justify-evenly">
           <VierkantleTop v-if="board" :board="board" :partialWord="partialWord" :lastWords="lastWords" />
@@ -115,6 +101,7 @@ import { Multiplayer } from 'src/services/multiplayer';
 import VierkantleTop from 'src/components/VierkantleTop.vue';
 import { createChannel, createClient } from 'nice-grpc-web';
 import { VierkantleServiceDefinition, VierkantleServiceClient, TeamStreamServerMessage } from '../services/vierkantle';
+import WordList from 'src/components/WordList.vue';
 
 const board_ = useStorage<Board | undefined>("board", undefined, undefined, { serializer: StorageSerializers.object });
 
@@ -168,43 +155,6 @@ function toggleMultiplayer() {
 
 function boardLetters(b: Board): string {
   return b.cells.reduce((p, c) => { return [...p, c.join("")] }).join("");
-}
-
-const wordsByLength = computed((): [string, WordInBoard][][] => {
-  if (!board.value) {
-    return []
-  }
-  var res = [] as [string, WordInBoard][][]
-  Object.entries(board.value.words).forEach(([word, wordInBoard]) => {
-    res[word.length] ??= [];
-    res[word.length].push([word, wordInBoard]);
-  })
-  for (let i = 0; i < res.length; ++i) {
-    if (res[i] && res[i].length) {
-      res[i] = res[i].sort((a, b) => { return a[0].length - b[0].length });
-    }
-  }
-  return res;
-});
-
-function wordWithStars(w: string): string {
-  function xStars(i: number): string {
-    var s = ""
-    for (; i > 0; --i) {
-      s += "*"
-    }
-    return s
-  }
-
-
-  switch(w.length) {
-    case 4: return w.substring(0, 1) + xStars(3)
-    case 5: return w.substring(0, 1) + xStars(4)
-    case 6: return w.substring(0, 2) + xStars(4)
-    case 7: return w.substring(0, 2) + xStars(4) + w.substring(6)
-    default:
-      return w.substring(0, 2) + xStars(w.length - 4) + w.substring(w.length - 2)
-  }
 }
 
 const partialWord = ref("");
@@ -398,17 +348,8 @@ async function stopMultiplayer() {
   z-index: 500;
   background: white;
   border: 1px solid black;
-  overflow:scroll;
+  overflow: scroll;
   padding: 4px;
-
-  h6 {
-    margin: 0;
-    margin-top: 20px;
-
-    &:first-of-type {
-      margin-top: 0;
-    }
-  }
 }
 
 @media screen and (min-width: 500px) {
