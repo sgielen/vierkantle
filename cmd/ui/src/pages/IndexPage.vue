@@ -88,8 +88,7 @@
           </template>
         </div>
         <div class="game-wrap items-center justify-evenly">
-          <span class="progress row items-center justify-evenly">{{ progress }}</span>
-          <span ref="messageSpan" class="message row items-center justify-evenly">{{ wordMessage }}</span>
+          <VierkantleTop v-if="board" :board="board" :partialWord="partialWord" :lastWords="lastWords" />
           <div class="row items-center justify-evenly">
             <div v-if="error">{{ error }}</div>
             <div v-else-if="!board">Loading board...</div>
@@ -97,7 +96,7 @@
               <VierkantleBoard
                 :board="board"
                 @word="word(null, $event)"
-                @partialWord="partialWord($event)"
+                @partialWord="partialWord = $event"
               />
             </div>
           </div>
@@ -114,6 +113,7 @@ import { computed, onMounted, ref, reactive } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { Multiplayer } from 'src/services/multiplayer';
 import { TeamStreamServerMessage } from 'src/services/vierkantle';
+import VierkantleTop from 'src/components/VierkantleTop.vue';
 
 const board_ = useStorage<Board | undefined>("board", undefined, undefined, { serializer: StorageSerializers.object });
 
@@ -204,87 +204,54 @@ function wordWithStars(w: string): string {
   }
 }
 
-const wordMessage = ref("");
-const messageSpan = ref<HTMLSpanElement>();
-
-const message_max_font_size = computed(() => {
-  console.log(wordMessage.value.length);
-  const spanStyle = window.getComputedStyle(messageSpan.value!, null);
-  const fontWeight = spanStyle.getPropertyValue('font-weight') || 'normal';
-  const fontFamily = spanStyle.getPropertyValue('font-family') || 'sans-serif';
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-
-  let fontSize = 34;
-  if (!ctx) {
-    return fontSize;
-  }
-
-  while (fontSize > 0) {
-    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-    const metrics = ctx.measureText(wordMessage.value);
-    if (metrics.width <= window.innerWidth) {
-      return `${fontSize}px`;
-    }
-    fontSize -= 1;
-  }
-  return 1;
-});
-
-const wordsTotal = computed(() => {
-  if (!board.value) {
-    return 0;
-  }
-
-  return Object.values(board.value.words).filter((w) => !w.bonus).length;
-});
-
-const wordsGuessed = computed(() => {
-  if (!board.value) {
-    return 0;
-  }
-
-  return Object.values(board.value.words).filter((w) => !w.bonus && w.guessed).length;
-});
-
-const progress = computed(() => {
-  if (wordsGuessed.value == wordsTotal.value) {
-    return "Klaar!";
-  } else {
-    return `${wordsGuessed.value} van ${wordsTotal.value}`;
-  }
-});
-
-function partialWord(word: string) {
-  wordMessage.value = word;
-}
+const partialWord = ref("");
+const lastWords = ref([] as string[]);
 
 function word(who: string | null, word: string) {
-  if (who) {
-    wordMessage.value = `${who}: `
-  } else {
-    wordMessage.value = "";
+  // A word was guessed. If who is null, it was guessed by us, otherwise by
+  // someone else.
+  // If it was guessed by us, set partialWord to the result, e.g.:
+  // - nope: x
+  // - bonus: x
+  // - x (you already had it)
+  // If a new word was discovered, add it to lastWords. If it was guessed by
+  // us, do *not* also set it in partialWord.
+  const isOurs = !who;
+  who = isOurs ? "" : `${who}: `;
+
+  if (isOurs) {
+    partialWord.value = "";
   }
 
   if (word.length < 4) {
-    wordMessage.value += "te kort: " + word
+    partialWord.value = "te kort: " + word
     return
   }
+
   const wordInBoard = board.value!.words[word];
   if (!wordInBoard) {
-    wordMessage.value += "nope: " + word
+    if (isOurs) {
+      partialWord.value = "nope: " + word
+    }
     return
   }
-  if (wordInBoard.bonus) {
-    wordMessage.value += "bonus: " + word
-  } else {
-    wordMessage.value += word
-  }
+
+  const maybeBonus = wordInBoard.bonus ? "bonus: " : "";
+
   if (wordInBoard.guessed) {
-    wordMessage.value += " (had je al)"
+    if (isOurs) {
+      partialWord.value = `${maybeBonus}${word} (had je al)`
+    }
+    return
   }
+
   wordInBoard.guessed = true
-  if (multiplayer.value && !who) {
+  lastWords.value.push(`${who}${maybeBonus}${word}`);
+  setTimeout(() => {
+    lastWords.value.shift();
+  }, 4000);
+
+  if (multiplayer.value && isOurs) {
     multiplayer.value.sendWord(word);
   }
 }
@@ -406,25 +373,6 @@ async function stopMultiplayer() {
 </script>
 
 <style lang="scss">
-.game-wrap {
-  .progress {
-    margin: 0;
-    margin-top: 20px;
-    line-height: 3rem;
-    height: 3rem;
-    font-size: 3rem;
-  }
-  .message {
-    margin: 0;
-    margin-top: 10px;
-    line-height: 2.5rem;
-    height: 2.5rem;
-    font-size: v-bind(message_max_font_size);
-
-    white-space: nowrap;
-  }
-}
-
 .game {
   min-width: 300px;
   width: 100%;
