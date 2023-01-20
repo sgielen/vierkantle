@@ -17,18 +17,20 @@
             <q-btn @click="reset" color="negative">Nieuw leeg bord</q-btn> <br />
             <q-input dense outlined type="text" label="Startwoord" style="max-width: 140px;" v-model="seedword" />
             <q-btn @click="seed" color="negative">Nieuw vooringevuld bord</q-btn> <br/>
-            <q-btn @click="fillIn" color="secondary">Vul bord verder in</q-btn> <br/>
           </div>
           <q-separator class="q-ma-sm" />
           <div class="row q-gutter-sm q-ma-sm">
-            <q-btn @click="renewWords" color="primary">Vernieuw woordenlijst</q-btn> <br />
-            <q-btn @click="download" color="primary">Download bord</q-btn> <br />
-            <q-btn @click="(e) => chooseFile(e)" color="primary">Upload bord</q-btn> <br />
+            <q-btn @click="download" color="primary">Download bord</q-btn>
+            <q-btn @click="chooseFile" color="primary">Upload bord</q-btn>
             <q-input filled type="file" ref="qFile" v-model="file" v-show="false" />
           </div>
           <q-separator class="q-ma-sm" />
+          <div class="row q-gutter-sm q-ma-sm">
+            <q-btn @click="fillIn" color="secondary">Vul bord verder in</q-btn>
+            <q-btn @click="renewWords" color="secondary">Vernieuw woordenlijst</q-btn>
+          </div>
+          <q-separator class="q-ma-sm" />
 
-          <q-separator />
           <template v-if="loading">
             <q-circular-progress
               indeterminate
@@ -197,7 +199,7 @@ function chooseFile() {
   (qFile.value?.getNativeElement() as HTMLElement).click();
 }
 
-const file = computed<FileList | File | undefined>({
+const file = computed<any>({
   get: () => { return undefined },
   set: async (files: FileList | File | undefined) => {
     if (!files) {
