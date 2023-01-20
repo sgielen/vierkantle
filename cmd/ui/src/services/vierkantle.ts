@@ -19,6 +19,24 @@ export interface WordsForBoardResponse {
   board: Uint8Array;
 }
 
+export interface SeedBoardRequest {
+  seedWord: string;
+  width: number;
+  height: number;
+}
+
+export interface SeedBoardResponse {
+  board: Uint8Array;
+}
+
+export interface FillInBoardRequest {
+  board: Uint8Array;
+}
+
+export interface FillInBoardResponse {
+  board: Uint8Array;
+}
+
 export interface CreateTeamRequest {
   name: string;
 }
@@ -221,6 +239,168 @@ export const WordsForBoardResponse = {
 
   fromPartial(object: DeepPartial<WordsForBoardResponse>): WordsForBoardResponse {
     const message = createBaseWordsForBoardResponse();
+    message.board = object.board ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseSeedBoardRequest(): SeedBoardRequest {
+  return { seedWord: "", width: 0, height: 0 };
+}
+
+export const SeedBoardRequest = {
+  encode(message: SeedBoardRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.seedWord !== "") {
+      writer.uint32(10).string(message.seedWord);
+    }
+    if (message.width !== 0) {
+      writer.uint32(16).int32(message.width);
+    }
+    if (message.height !== 0) {
+      writer.uint32(24).int32(message.height);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): SeedBoardRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSeedBoardRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.seedWord = reader.string();
+          break;
+        case 2:
+          message.width = reader.int32();
+          break;
+        case 3:
+          message.height = reader.int32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<SeedBoardRequest>): SeedBoardRequest {
+    const message = createBaseSeedBoardRequest();
+    message.seedWord = object.seedWord ?? "";
+    message.width = object.width ?? 0;
+    message.height = object.height ?? 0;
+    return message;
+  },
+};
+
+function createBaseSeedBoardResponse(): SeedBoardResponse {
+  return { board: new Uint8Array() };
+}
+
+export const SeedBoardResponse = {
+  encode(message: SeedBoardResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.board.length !== 0) {
+      writer.uint32(10).bytes(message.board);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): SeedBoardResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSeedBoardResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.board = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<SeedBoardResponse>): SeedBoardResponse {
+    const message = createBaseSeedBoardResponse();
+    message.board = object.board ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseFillInBoardRequest(): FillInBoardRequest {
+  return { board: new Uint8Array() };
+}
+
+export const FillInBoardRequest = {
+  encode(message: FillInBoardRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.board.length !== 0) {
+      writer.uint32(10).bytes(message.board);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): FillInBoardRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFillInBoardRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.board = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<FillInBoardRequest>): FillInBoardRequest {
+    const message = createBaseFillInBoardRequest();
+    message.board = object.board ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseFillInBoardResponse(): FillInBoardResponse {
+  return { board: new Uint8Array() };
+}
+
+export const FillInBoardResponse = {
+  encode(message: FillInBoardResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.board.length !== 0) {
+      writer.uint32(10).bytes(message.board);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): FillInBoardResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFillInBoardResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.board = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<FillInBoardResponse>): FillInBoardResponse {
+    const message = createBaseFillInBoardResponse();
     message.board = object.board ?? new Uint8Array();
     return message;
   },
@@ -658,6 +838,22 @@ export const VierkantleServiceDefinition = {
       responseStream: false,
       options: {},
     },
+    seedBoard: {
+      name: "SeedBoard",
+      requestType: SeedBoardRequest,
+      requestStream: false,
+      responseType: SeedBoardResponse,
+      responseStream: false,
+      options: {},
+    },
+    fillInBoard: {
+      name: "FillInBoard",
+      requestType: FillInBoardRequest,
+      requestStream: false,
+      responseType: FillInBoardResponse,
+      responseStream: false,
+      options: {},
+    },
     teamStream: {
       name: "TeamStream",
       requestType: TeamStreamClientMessage,
@@ -676,6 +872,11 @@ export interface VierkantleServiceImplementation<CallContextExt = {}> {
     request: WordsForBoardRequest,
     context: CallContext & CallContextExt,
   ): Promise<DeepPartial<WordsForBoardResponse>>;
+  seedBoard(request: SeedBoardRequest, context: CallContext & CallContextExt): Promise<DeepPartial<SeedBoardResponse>>;
+  fillInBoard(
+    request: FillInBoardRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<FillInBoardResponse>>;
   teamStream(
     request: AsyncIterable<TeamStreamClientMessage>,
     context: CallContext & CallContextExt,
@@ -689,6 +890,11 @@ export interface VierkantleServiceClient<CallOptionsExt = {}> {
     request: DeepPartial<WordsForBoardRequest>,
     options?: CallOptions & CallOptionsExt,
   ): Promise<WordsForBoardResponse>;
+  seedBoard(request: DeepPartial<SeedBoardRequest>, options?: CallOptions & CallOptionsExt): Promise<SeedBoardResponse>;
+  fillInBoard(
+    request: DeepPartial<FillInBoardRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<FillInBoardResponse>;
   teamStream(
     request: AsyncIterable<DeepPartial<TeamStreamClientMessage>>,
     options?: CallOptions & CallOptionsExt,

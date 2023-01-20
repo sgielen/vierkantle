@@ -2,8 +2,11 @@ package vierkantle
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"time"
+
+	"github.com/sgielen/vierkantle/pkg/dictionary"
 )
 
 var random *rand.Rand
@@ -54,7 +57,7 @@ func (b *Board) FillRandomly() {
 	letters := []rune("abcdefghijklmnopqrstuvwxyz")
 	for y := 0; y < b.Height; y++ {
 		for x := 0; x < b.Width; x++ {
-			if b.Cells[y][x] == '?' {
+			if b.Cells[y][x] == '?' || b.Cells[y][x] == 0 {
 				b.Cells[y][x] = letters[random.Intn(len(letters))]
 			}
 		}
@@ -63,4 +66,54 @@ func (b *Board) FillRandomly() {
 
 func (b *Board) ResetCell(coord Coord) {
 	b.Cells[coord.Y][coord.X] = '?'
+}
+
+// Try to get this board filled up with random letters until all of them
+// are used in words
+func (b *Board) FillFullyUsed(dict dictionary.PrefixDictionary) ([]WordInBoard, bool) {
+	subAttempts := 100
+	var words []WordInBoard
+	var unusedCells []Coord
+	for subAttempt := 0; subAttempt < subAttempts; subAttempt++ {
+		b.FillRandomly()
+		words = b.WordsInBoard(dict, 4)
+		unusedCells = b.FindUnusedCells(words)
+		if len(unusedCells) == 0 {
+			break
+		}
+
+		for _, unusedCell := range unusedCells {
+			b.ResetCell(unusedCell)
+		}
+	}
+
+	return words, len(unusedCells) == 0
+}
+
+func (b *Board) ScoreBoard(words []WordInBoard) float64 {
+	score := 0.
+	numNormalWords := 0
+	for _, wordInBoard := range words {
+		if wordInBoard.WordType == dictionary.NormalWord {
+			numNormalWords++
+			frequencyScore := math.Log10(wordInBoard.Frequency)
+			if frequencyScore < 0 {
+				frequencyScore = 0
+			}
+			lengthScore := float64(len(wordInBoard.Word)-4) * 3
+			score += lengthScore * frequencyScore
+		}
+	}
+	score = score / float64(numNormalWords)
+	// Score is now the average word length throughout the board - longer is usually better.
+	// Give a small penalty for having too many or too few words.
+	if numNormalWords > 60 {
+		score -= float64(numNormalWords-60) * 0.1
+	} else if numNormalWords < 25 {
+		score -= float64(25-numNormalWords) * 0.1
+	} else {
+		// more words is slightly better
+		score += float64(numNormalWords) * 0.01
+	}
+	return score
 }

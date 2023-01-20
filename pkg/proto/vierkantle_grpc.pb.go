@@ -21,6 +21,8 @@ type VierkantleServiceClient interface {
 	GetBoard(ctx context.Context, in *GetBoardRequest, opts ...grpc.CallOption) (*GetBoardResponse, error)
 	// Generator
 	WordsForBoard(ctx context.Context, in *WordsForBoardRequest, opts ...grpc.CallOption) (*WordsForBoardResponse, error)
+	SeedBoard(ctx context.Context, in *SeedBoardRequest, opts ...grpc.CallOption) (*SeedBoardResponse, error)
+	FillInBoard(ctx context.Context, in *FillInBoardRequest, opts ...grpc.CallOption) (*FillInBoardResponse, error)
 	TeamStream(ctx context.Context, opts ...grpc.CallOption) (VierkantleService_TeamStreamClient, error)
 }
 
@@ -44,6 +46,24 @@ func (c *vierkantleServiceClient) GetBoard(ctx context.Context, in *GetBoardRequ
 func (c *vierkantleServiceClient) WordsForBoard(ctx context.Context, in *WordsForBoardRequest, opts ...grpc.CallOption) (*WordsForBoardResponse, error) {
 	out := new(WordsForBoardResponse)
 	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/WordsForBoard", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vierkantleServiceClient) SeedBoard(ctx context.Context, in *SeedBoardRequest, opts ...grpc.CallOption) (*SeedBoardResponse, error) {
+	out := new(SeedBoardResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/SeedBoard", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vierkantleServiceClient) FillInBoard(ctx context.Context, in *FillInBoardRequest, opts ...grpc.CallOption) (*FillInBoardResponse, error) {
+	out := new(FillInBoardResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/FillInBoard", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +108,8 @@ type VierkantleServiceServer interface {
 	GetBoard(context.Context, *GetBoardRequest) (*GetBoardResponse, error)
 	// Generator
 	WordsForBoard(context.Context, *WordsForBoardRequest) (*WordsForBoardResponse, error)
+	SeedBoard(context.Context, *SeedBoardRequest) (*SeedBoardResponse, error)
+	FillInBoard(context.Context, *FillInBoardRequest) (*FillInBoardResponse, error)
 	TeamStream(VierkantleService_TeamStreamServer) error
 }
 
@@ -100,6 +122,12 @@ func (UnimplementedVierkantleServiceServer) GetBoard(context.Context, *GetBoardR
 }
 func (UnimplementedVierkantleServiceServer) WordsForBoard(context.Context, *WordsForBoardRequest) (*WordsForBoardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WordsForBoard not implemented")
+}
+func (UnimplementedVierkantleServiceServer) SeedBoard(context.Context, *SeedBoardRequest) (*SeedBoardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SeedBoard not implemented")
+}
+func (UnimplementedVierkantleServiceServer) FillInBoard(context.Context, *FillInBoardRequest) (*FillInBoardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FillInBoard not implemented")
 }
 func (UnimplementedVierkantleServiceServer) TeamStream(VierkantleService_TeamStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method TeamStream not implemented")
@@ -152,6 +180,42 @@ func _VierkantleService_WordsForBoard_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VierkantleService_SeedBoard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SeedBoardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).SeedBoard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/SeedBoard",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).SeedBoard(ctx, req.(*SeedBoardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VierkantleService_FillInBoard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FillInBoardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).FillInBoard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/FillInBoard",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).FillInBoard(ctx, req.(*FillInBoardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _VierkantleService_TeamStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	return srv.(VierkantleServiceServer).TeamStream(&vierkantleServiceTeamStreamServer{stream})
 }
@@ -192,6 +256,14 @@ var VierkantleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WordsForBoard",
 			Handler:    _VierkantleService_WordsForBoard_Handler,
+		},
+		{
+			MethodName: "SeedBoard",
+			Handler:    _VierkantleService_SeedBoard_Handler,
+		},
+		{
+			MethodName: "FillInBoard",
+			Handler:    _VierkantleService_FillInBoard_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

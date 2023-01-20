@@ -33,6 +33,11 @@ type PrefixDictionary interface {
 	HasWord(string) *HasWordsWithPrefixResult
 }
 
+type RWPrefixDictionary interface {
+	HasWord(string) *HasWordsWithPrefixResult
+	AddWord(WordReadResult, WordType, bool)
+}
+
 type prefixDictionary struct {
 	Prefixes map[string]*HasWordsWithPrefixResult
 }

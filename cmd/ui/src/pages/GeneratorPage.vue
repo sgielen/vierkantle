@@ -15,6 +15,9 @@
             <q-input dense outlined type="number" label="Breedte" style="max-width: 80px;" v-model.number="width" />
             <q-input dense outlined type="number" label="Hoogte" style="max-width: 80px;" v-model.number="height" />
             <q-btn @click="reset" color="negative">Nieuw leeg bord</q-btn> <br />
+            <q-input dense outlined type="text" label="Startwoord" style="max-width: 140px;" v-model="seedword" />
+            <q-btn @click="seed" color="negative">Nieuw vooringevuld bord</q-btn> <br/>
+            <q-btn @click="fillIn" color="secondary">Vul bord verder in</q-btn> <br/>
           </div>
           <q-separator class="q-ma-sm" />
           <div class="row q-gutter-sm q-ma-sm">
@@ -36,7 +39,6 @@
           <WordList v-else :words="board.words" :showAll="true" />
         </div>
         <div class="game-wrap items-center justify-evenly">
-          <!-- <VierkantleTop v-if="board" :board="board" :partialWord="partialWord" :lastWords="lastWords" /> -->
           <div class="row items-center justify-evenly">
             <div v-if="error">{{ error }}</div>
             <div class="game">
@@ -56,7 +58,7 @@
 <script setup lang="ts">
 import VierkantleBoard from 'components/VierkantleBoard.vue';
 import { Board } from 'src/components/models';
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createChannel, createClient } from 'nice-grpc-web';
 import { VierkantleServiceDefinition, VierkantleServiceClient } from '../services/vierkantle';
@@ -92,6 +94,41 @@ const backendAddress = window.location.origin + "/api";
 
 function reset() {
   board.value = defaultBoard();
+}
+
+const seedword = ref("");
+async function seed() {
+  loading.value = true;
+  error.value = "";
+  try {
+    const channel = createChannel(backendAddress);
+    const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
+    const boardResponse = await client.seedBoard({
+      seedWord: seedword.value,
+      width: width.value,
+      height: height.value,
+    });
+    board.value = JSON.parse(new TextDecoder().decode(boardResponse.board));
+  } catch(e) {
+    error.value = e as string;
+  }
+  loading.value = false;
+}
+
+async function fillIn() {
+  loading.value = true;
+  error.value = "";
+  try {
+    const channel = createChannel(backendAddress);
+    const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
+    const boardResponse = await client.fillInBoard({
+      board: new TextEncoder().encode(JSON.stringify(board.value, null, 0)),
+    });
+    board.value = JSON.parse(new TextDecoder().decode(boardResponse.board));
+  } catch(e) {
+    error.value = e as string;
+  }
+  loading.value = false;
 }
 
 async function renewWords() {

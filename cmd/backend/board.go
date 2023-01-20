@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -39,7 +40,7 @@ func (s *vierkantleService) GetBoard(ctx context.Context, req *pb.GetBoardReques
 	return nil, NoBoardsPresent
 }
 
-func (s *vierkantleService) WordsForBoard(ctx context.Context, req *pb.WordsForBoardRequest) (*pb.WordsForBoardResponse, error) {
+func (s *vierkantleService) getDictionary() (dictionary.RWPrefixDictionary, error) {
 	dict := dictionary.NewPrefixDictionary()
 	for _, bonuslist := range s.bonusLists {
 		if err := dict.ReadFromFile(bonuslist, dictionary.BonusWord, false); err != nil {
@@ -50,6 +51,14 @@ func (s *vierkantleService) WordsForBoard(ctx context.Context, req *pb.WordsForB
 		if err := dict.ReadFromFile(wordlist, dictionary.NormalWord, true /* upgrade only */); err != nil {
 			return nil, err
 		}
+	}
+	return dict, nil
+}
+
+func (s *vierkantleService) WordsForBoard(ctx context.Context, req *pb.WordsForBoardRequest) (*pb.WordsForBoardResponse, error) {
+	dict, err := s.getDictionary()
+	if err != nil {
+		return nil, err
 	}
 
 	board, _, err := vierkantle.BoardFromJson(req.Board)
@@ -63,5 +72,88 @@ func (s *vierkantleService) WordsForBoard(ctx context.Context, req *pb.WordsForB
 	}
 	return &pb.WordsForBoardResponse{
 		Board: newBoard,
-	}, err
+	}, nil
+}
+
+func (s *vierkantleService) SeedBoard(ctx context.Context, req *pb.SeedBoardRequest) (*pb.SeedBoardResponse, error) {
+	dict, err := s.getDictionary()
+	if err != nil {
+		return nil, err
+	}
+
+	if req.SeedWord != "" {
+		dict.AddWord(dictionary.WordReadResult{
+			Word: req.SeedWord,
+		}, dictionary.NormalWord, false)
+	}
+
+	var bestBoard *vierkantle.Board
+	var bestWords []vierkantle.WordInBoard
+	bestScore := 0.
+	attempts := 10000
+	for attempt := 0; attempt < attempts; attempt++ {
+		board := vierkantle.NewBoard(int(req.Width), int(req.Height))
+		if err := board.PrefillRandomly(req.SeedWord); err != nil {
+			return nil, fmt.Errorf("that seed word doesn't fit in the board :-(")
+		}
+
+		words, ok := board.FillFullyUsed(dict)
+		if !ok && attempt != attempts-1 /* last attempt */ {
+			// Couldn't fill up this board to have words, nevermind
+			continue
+		}
+
+		score := board.ScoreBoard(words)
+		if score > bestScore {
+			bestBoard = board
+			bestWords = words
+			bestScore = score
+		}
+	}
+
+	newBoard, err := bestBoard.PrintBoardJson(bestWords)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.SeedBoardResponse{
+		Board: newBoard,
+	}, nil
+}
+
+func (s *vierkantleService) FillInBoard(ctx context.Context, req *pb.FillInBoardRequest) (*pb.FillInBoardResponse, error) {
+	dict, err := s.getDictionary()
+	if err != nil {
+		return nil, err
+	}
+
+	var bestBoard *vierkantle.Board
+	var bestWords []vierkantle.WordInBoard
+	bestScore := 0.
+	attempts := 10000
+	for attempt := 0; attempt < attempts; attempt++ {
+		board, _, err := vierkantle.BoardFromJson(req.Board)
+		if err != nil {
+			return nil, err
+		}
+
+		words, ok := board.FillFullyUsed(dict)
+		if !ok && attempt != attempts-1 /* last attempt */ {
+			// Couldn't fill up this board to have words, nevermind
+			continue
+		}
+
+		score := board.ScoreBoard(words)
+		if score > bestScore {
+			bestBoard = board
+			bestWords = words
+			bestScore = score
+		}
+	}
+	newBoard, err := bestBoard.PrintBoardJson(bestWords)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.FillInBoardResponse{
+		Board: newBoard,
+	}, nil
 }

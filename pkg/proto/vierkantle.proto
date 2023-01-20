@@ -9,6 +9,8 @@ service VierkantleService {
 
   // Generator
   rpc WordsForBoard(WordsForBoardRequest) returns (WordsForBoardResponse) {}
+  rpc SeedBoard(SeedBoardRequest) returns (SeedBoardResponse) {}
+  rpc FillInBoard(FillInBoardRequest) returns (FillInBoardResponse) {}
 
   rpc TeamStream(stream TeamStreamClientMessage) returns (stream TeamStreamServerMessage) {}
 }
@@ -25,6 +27,24 @@ message WordsForBoardRequest {
 }
 
 message WordsForBoardResponse {
+  bytes board = 1;
+}
+
+message SeedBoardRequest {
+  string seed_word = 1;
+  int32 width = 2;
+  int32 height = 3;
+}
+
+message SeedBoardResponse {
+  bytes board = 1;
+}
+
+message FillInBoardRequest {
+  bytes board = 1;
+}
+
+message FillInBoardResponse {
   bytes board = 1;
 }
 

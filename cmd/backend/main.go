@@ -69,7 +69,6 @@ func main() {
 		grpcweb.WithWebsocketOriginFunc(func(req *http.Request) bool { return true }),
 	)
 	handler := func(resp http.ResponseWriter, req *http.Request) {
-		log.Printf("got request to %s", req.URL.String())
 		wrappedServer.ServeHTTP(resp, req)
 	}
 

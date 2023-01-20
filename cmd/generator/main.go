@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"math"
 	"os"
 	"sort"
 	"strconv"
@@ -100,43 +99,13 @@ func main() {
 			log.Fatal("That seed word doesn't fit in the board :-(")
 		}
 
-		// Try to get this board filled up with random letters
-		// until it has words
-		subAttempts := 100
-		var words []vierkantle.WordInBoard
-		var unusedCells []vierkantle.Coord
-		for subAttempt := 0; subAttempt < subAttempts; subAttempt++ {
-			board.FillRandomly()
-			words = board.WordsInBoard(dict, 4)
-			unusedCells = board.FindUnusedCells(words)
-			if len(unusedCells) == 0 {
-				break
-			}
-
-			for _, unusedCell := range unusedCells {
-				board.ResetCell(unusedCell)
-			}
-		}
-
-		if len(unusedCells) != 0 {
+		words, ok := board.FillFullyUsed(dict)
+		if !ok {
 			// Couldn't fill up this board to have words, nevermind
 			continue
 		}
 
-		score := 0.
-		numNormalWords := 0
-		for _, wordInBoard := range words {
-			if wordInBoard.WordType == dictionary.NormalWord {
-				numNormalWords++
-				frequencyScore := math.Log10(wordInBoard.Frequency)
-				if frequencyScore < 0 {
-					frequencyScore = 0
-				}
-				lengthScore := float64(len(wordInBoard.Word)-4) * 3
-				score += lengthScore * frequencyScore
-			}
-		}
-		score = score / float64(numNormalWords)
+		score := board.ScoreBoard(words)
 		if score > bestScore {
 			bestBoard = board
 			bestWords = words
