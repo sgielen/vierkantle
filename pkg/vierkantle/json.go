@@ -23,9 +23,9 @@ func (b *Board) PrintBoardJson(words []WordInBoard) ([]byte, error) {
 	res := BoardJsonExport{}
 	res.Width = b.Width
 	res.Height = b.Height
-	res.Cells = make([][]string, res.Width)
+	res.Cells = make([][]string, res.Height)
 	for y, row := range b.Cells {
-		res.Cells[y] = make([]string, res.Height)
+		res.Cells[y] = make([]string, res.Width)
 		for x, cell := range row {
 			res.Cells[y][x] = string(cell)
 		}
@@ -39,4 +39,44 @@ func (b *Board) PrintBoardJson(words []WordInBoard) ([]byte, error) {
 		}
 	}
 	return json.Marshal(res)
+}
+
+func BoardFromJson(data []byte) (*Board, []WordInBoard, error) {
+	var req BoardJsonExport
+	err := json.Unmarshal(data, &req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	b := &Board{
+		Width:  req.Width,
+		Height: req.Height,
+		Cells:  make([][]rune, req.Height),
+	}
+	for y, row := range req.Cells {
+		b.Cells[y] = make([]rune, req.Width)
+		for x, cell := range row {
+			if len(cell) > 0 {
+				b.Cells[y][x] = rune(cell[0])
+			}
+		}
+	}
+	var words []WordInBoard
+	for word, wordInBoard := range req.Words {
+		var wordType dictionary.WordType
+		if wordInBoard.Bonus {
+			wordType = dictionary.BonusWord
+		} else if wordInBoard.Swear {
+			wordType = dictionary.SwearWord
+		} else {
+			wordType = dictionary.NormalWord
+		}
+		words = append(words, WordInBoard{
+			Word:      word,
+			Path:      wordInBoard.Path,
+			WordType:  wordType,
+			Frequency: 0,
+		})
+	}
+	return b, words, nil
 }

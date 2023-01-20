@@ -18,5 +18,7 @@ EXPOSE 80
 
 FROM base AS backend
 COPY --from=build /backend /
+COPY contrib/SUBTLEX-NL.cd-above2.txt /data/wordlist.txt
+COPY contrib/opentaal-wordlist/wordlist.txt /data/bonuslist.txt
 USER nobody:nogroup
 ENTRYPOINT [ "/backend" ]

@@ -6,7 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/sgielen/vierkantle/pkg/dictionary"
 	pb "github.com/sgielen/vierkantle/pkg/proto"
+	"github.com/sgielen/vierkantle/pkg/vierkantle"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -35,4 +37,31 @@ func (s *vierkantleService) GetBoard(ctx context.Context, req *pb.GetBoardReques
 	}
 
 	return nil, NoBoardsPresent
+}
+
+func (s *vierkantleService) WordsForBoard(ctx context.Context, req *pb.WordsForBoardRequest) (*pb.WordsForBoardResponse, error) {
+	dict := dictionary.NewPrefixDictionary()
+	for _, bonuslist := range s.bonusLists {
+		if err := dict.ReadFromFile(bonuslist, dictionary.BonusWord, false); err != nil {
+			return nil, err
+		}
+	}
+	for _, wordlist := range s.wordLists {
+		if err := dict.ReadFromFile(wordlist, dictionary.NormalWord, true /* upgrade only */); err != nil {
+			return nil, err
+		}
+	}
+
+	board, _, err := vierkantle.BoardFromJson(req.Board)
+	if err != nil {
+		return nil, err
+	}
+	words := board.WordsInBoard(dict, 4)
+	newBoard, err := board.PrintBoardJson(words)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.WordsForBoardResponse{
+		Board: newBoard,
+	}, err
 }
