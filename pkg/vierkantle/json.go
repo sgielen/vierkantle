@@ -27,7 +27,11 @@ func (b *Board) PrintBoardJson(words []WordInBoard) ([]byte, error) {
 	for y, row := range b.Cells {
 		res.Cells[y] = make([]string, res.Width)
 		for x, cell := range row {
-			res.Cells[y][x] = string(cell)
+			if cell == 0 {
+				res.Cells[y][x] = ""
+			} else {
+				res.Cells[y][x] = string(cell)
+			}
 		}
 	}
 	res.Words = make(map[string]BoardJsonWord)
