@@ -101,6 +101,11 @@ const wordPath = computed(() => {
 })
 
 function dragStart(x: number, y: number, event: MouseEvent | VierkantleTouchEvent) {
+  if (!props.generatorMode && props.board.cells[y][x] === "") {
+    // skip empty cells in normal mode
+    return
+  }
+
   path.value = [{
     element: event.currentTarget as HTMLElement,
     coord: {x, y},
@@ -117,6 +122,11 @@ function dragMove(x: number, y: number, event: MouseEvent | VierkantleTouchEvent
   if (props.generatorMode) {
     // don't path in generator mode
     return;
+  }
+
+  if (props.board.cells[y][x] === "") {
+    // skip empty cells
+    return
   }
 
   // Only trigger on moves that are close to the center of the element
