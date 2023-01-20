@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/sgielen/vierkantle/pkg/dictionary"
 	pb "github.com/sgielen/vierkantle/pkg/proto"
@@ -17,6 +18,22 @@ import (
 var NoBoardsPresent = status.Error(codes.NotFound, "no boards present")
 
 func (s *vierkantleService) GetBoard(ctx context.Context, req *pb.GetBoardRequest) (*pb.GetBoardResponse, error) {
+	if req.TimezoneOffsetMinutes < -24*60 || req.TimezoneOffsetMinutes > 24*60 {
+		return nil, status.Error(codes.InvalidArgument, "invalid timezone offset")
+	}
+	date := time.Now().UTC().In(time.FixedZone("", int(60*-req.TimezoneOffsetMinutes)))
+	// If it's before 12:00 PM in the user's timezone, take yesterday's board
+	if date.Hour() < 12 {
+		date = date.Add(-time.Hour * 13)
+	}
+	todaysBoard := date.Format("2006-01-02") + ".json"
+	bytes, err := os.ReadFile(filepath.Join(s.boardDir, todaysBoard))
+	if err == nil {
+		return &pb.GetBoardResponse{
+			Board: bytes,
+		}, nil
+	}
+
 	files, err := os.ReadDir(s.boardDir)
 	if err != nil {
 		return nil, NoBoardsPresent

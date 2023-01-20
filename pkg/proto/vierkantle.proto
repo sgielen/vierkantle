@@ -16,6 +16,8 @@ service VierkantleService {
 }
 
 message GetBoardRequest {
+  // Timezone offset in client's local time, as in Javascript Date.getTimezoneOffset()
+  int32 timezoneOffsetMinutes = 1;
 }
 
 message GetBoardResponse {

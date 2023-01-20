@@ -131,7 +131,9 @@ onMounted(async () => {
   try {
     const channel = createChannel(backendAddress);
     const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
-    const boardResponse = await client.getBoard({});
+    const boardResponse = await client.getBoard({
+      timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+    });
     const board = JSON.parse(new TextDecoder().decode(boardResponse.board));
     if (!board_.value || boardLetters(board) != boardLetters(board_.value)) {
       board_.value = board;

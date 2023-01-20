@@ -5,6 +5,7 @@ import * as _m0 from "protobufjs/minimal";
 export const protobufPackage = "nl.vierkantle";
 
 export interface GetBoardRequest {
+  timezoneOffsetMinutes: number;
 }
 
 export interface GetBoardResponse {
@@ -104,11 +105,14 @@ export interface TeamStreamServerMessage {
 }
 
 function createBaseGetBoardRequest(): GetBoardRequest {
-  return {};
+  return { timezoneOffsetMinutes: 0 };
 }
 
 export const GetBoardRequest = {
-  encode(_: GetBoardRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: GetBoardRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.timezoneOffsetMinutes !== 0) {
+      writer.uint32(8).int32(message.timezoneOffsetMinutes);
+    }
     return writer;
   },
 
@@ -119,6 +123,9 @@ export const GetBoardRequest = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          message.timezoneOffsetMinutes = reader.int32();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -127,8 +134,9 @@ export const GetBoardRequest = {
     return message;
   },
 
-  fromPartial(_: DeepPartial<GetBoardRequest>): GetBoardRequest {
+  fromPartial(object: DeepPartial<GetBoardRequest>): GetBoardRequest {
     const message = createBaseGetBoardRequest();
+    message.timezoneOffsetMinutes = object.timezoneOffsetMinutes ?? 0;
     return message;
   },
 };
