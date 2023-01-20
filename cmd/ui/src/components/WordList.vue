@@ -1,10 +1,16 @@
 <template>
   <template v-for="(words, length) in wordsByLength" :key="length">
-    <template v-if="words && words.filter(f => !f[1].bonus).length">
+    <template v-if="words && words.filter(f => props.configuring || !f[1].bonus).length">
       <h6>{{ length }} letters</h6>
       <template v-for="([word, wstate]) in words" :key="word">
-        <template v-if="!wstate.bonus">
-          <template v-if="props.showAll || wstate.guessed">
+        <template v-if="props.configuring">
+          <div class="row items-center">
+            <code>{{ word }}</code>
+            <q-checkbox class="q-ml-sm" size="xs" label="Bonus" :model-value="wstate.bonus ?? false" @update:model-value="(value: boolean) => setBonus(word, value)" />
+          </div>
+        </template>
+        <template v-else-if="!wstate.bonus">
+          <template v-if="wstate.guessed">
             <code>{{ word }}</code><br/>
           </template>
           <template v-else>
@@ -22,10 +28,14 @@ import { WordInBoard } from './models';
 
 const props = withDefaults(defineProps<{
   words: Record<string, WordInBoard>;
-  showAll?: boolean,
+  configuring?: boolean,
 }>(), {
-  showAll: false,
+  configuring: false,
 })
+
+const emit = defineEmits<{
+  (event: 'set-bonus', word: string, bonus: boolean): void,
+}>();
 
 const wordsByLength = computed((): [string, WordInBoard][][] => {
   var res = [] as [string, WordInBoard][][]
@@ -50,7 +60,6 @@ function wordWithStars(w: string): string {
     return s
   }
 
-
   switch(w.length) {
     case 4: return w.substring(0, 1) + xStars(3)
     case 5: return w.substring(0, 1) + xStars(4)
@@ -59,6 +68,10 @@ function wordWithStars(w: string): string {
     default:
       return w.substring(0, 2) + xStars(w.length - 4) + w.substring(w.length - 2)
   }
+}
+
+function setBonus(word: string, bonus: boolean) {
+  emit("set-bonus", word, bonus);
 }
 </script>
 

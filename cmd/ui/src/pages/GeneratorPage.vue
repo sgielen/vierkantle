@@ -36,9 +36,11 @@
               class="q-ma-md"
             />
           </template>
-          <WordList v-else :words="board.words" :showAll="true" />
+          <WordList v-else :words="board.words" :configuring="true" @set-bonus="setWordBonus" />
         </div>
         <div class="game-wrap items-center justify-evenly">
+          <LabelAutofit size="48" :value="numWords" />
+          <LabelAutofit size="24" :value="usage" />
           <div class="row items-center justify-evenly">
             <div v-if="error">{{ error }}</div>
             <div class="game">
@@ -58,11 +60,12 @@
 <script setup lang="ts">
 import VierkantleBoard from 'components/VierkantleBoard.vue';
 import { Board } from 'src/components/models';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createChannel, createClient } from 'nice-grpc-web';
 import { VierkantleServiceDefinition, VierkantleServiceClient } from '../services/vierkantle';
 import WordList from 'src/components/WordList.vue';
+import LabelAutofit from 'src/components/LabelAutofit.vue';
 
 function defaultBoard(): Board {
   const b: Board = {
@@ -86,6 +89,15 @@ const board = useStorage<Board>("generatorBoard", defaultBoard(), undefined, { s
 onMounted(() => {
   width.value = board.value.width;
   height.value = board.value.height;
+});
+
+const numWords = computed(() => {
+  const normalWords = Object.values(board.value.words).filter((w) => !w.bonus).length;
+  const bonusWords = Object.values(board.value.words).filter((w) => w.bonus).length;
+  return `${normalWords} woorden, ${bonusWords} bonuswoorden`;
+});
+const usage = computed(() => {
+  return "Dubbelklik om een cel in te vullen. Cel leeg laten met <spatie>. Na wijzigen woordenlijst hernieuwen."
 });
 
 const error = ref("");
@@ -149,6 +161,12 @@ async function renewWords() {
 
 function updateLetter(x: number, y: number, letter: string) {
   board.value.cells[y][x] = letter;
+}
+
+function setWordBonus(word: string, bonus: boolean) {
+  if (word in board.value.words) {
+    board.value.words[word].bonus = bonus;
+  }
 }
 
 function download() {
