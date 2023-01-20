@@ -90,7 +90,7 @@ func (s *vierkantleService) SeedBoard(ctx context.Context, req *pb.SeedBoardRequ
 	var bestBoard *vierkantle.Board
 	var bestWords []vierkantle.WordInBoard
 	bestScore := 0.
-	attempts := 10000
+	attempts := 5000
 	for attempt := 0; attempt < attempts; attempt++ {
 		board := vierkantle.NewBoard(int(req.Width), int(req.Height))
 		if err := board.PrefillRandomly(req.SeedWord); err != nil {
@@ -129,7 +129,7 @@ func (s *vierkantleService) FillInBoard(ctx context.Context, req *pb.FillInBoard
 	var bestBoard *vierkantle.Board
 	var bestWords []vierkantle.WordInBoard
 	bestScore := 0.
-	attempts := 10000
+	attempts := 5000
 	for attempt := 0; attempt < attempts; attempt++ {
 		board, _, err := vierkantle.BoardFromJson(req.Board)
 		if err != nil {
