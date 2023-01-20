@@ -326,6 +326,7 @@ async function joinTeam() {
 }
 
 async function stopMultiplayer() {
+  multiplayer.value?.disconnect();
   multiplayerError.value = undefined;
   multiplayer.value = undefined;
 }
