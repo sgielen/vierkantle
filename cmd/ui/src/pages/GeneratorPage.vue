@@ -11,9 +11,19 @@
     <q-page>
       <div class="game-page row items-center q-ma-xl">
         <div class="wordlist">
-          <q-btn @click="reset" color="negative">Verwijder bord en begin opnieuw</q-btn> <br />
-          <q-btn @click="renewWords" color="primary">Vernieuw woordenlijst</q-btn> <br />
-          <q-btn @click="download" color="primary">Download bord</q-btn> <br />
+          <div class="row q-gutter-sm q-ma-sm">
+            <q-input dense outlined type="number" label="Breedte" style="max-width: 80px;" v-model.number="width" />
+            <q-input dense outlined type="number" label="Hoogte" style="max-width: 80px;" v-model.number="height" />
+            <q-btn @click="reset" color="negative">Nieuw leeg bord</q-btn> <br />
+          </div>
+          <q-separator class="q-ma-sm" />
+          <div class="row q-gutter-sm q-ma-sm">
+            <q-btn @click="renewWords" color="primary">Vernieuw woordenlijst</q-btn> <br />
+            <q-btn @click="download" color="primary">Download bord</q-btn> <br />
+          </div>
+          <q-separator class="q-ma-sm" />
+
+          <q-separator />
           <template v-if="loading">
             <q-circular-progress
               indeterminate
@@ -46,36 +56,47 @@
 <script setup lang="ts">
 import VierkantleBoard from 'components/VierkantleBoard.vue';
 import { Board } from 'src/components/models';
-import { ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createChannel, createClient } from 'nice-grpc-web';
 import { VierkantleServiceDefinition, VierkantleServiceClient } from '../services/vierkantle';
 import WordList from 'src/components/WordList.vue';
 
-const defaultBoard: Board = {
-  width: 4,
-  height: 4,
-  cells: [
-    ["", "", "", ""],
-    ["", "", "", ""],
-    ["", "", "", ""],
-    ["", "", "", ""],
-  ],
-  words: {},
-};
+function defaultBoard(): Board {
+  const b: Board = {
+    width: width.value || 4,
+    height: height.value || 4,
+    cells: [],
+    words: {},
+  };
+  for (let y = 0; y < b.height; ++y) {
+    b.cells[y] = [];
+    for (let x = 0; x < b.width; ++x) {
+      b.cells[y][x] = "";
+    }
+  }
+  return b;
+}
 
-const board = useStorage<Board>("generatorBoard", defaultBoard, undefined, { serializer: StorageSerializers.object });
+const width = ref(4);
+const height = ref(4);
+const board = useStorage<Board>("generatorBoard", defaultBoard(), undefined, { serializer: StorageSerializers.object });
+onMounted(() => {
+  width.value = board.value.width;
+  height.value = board.value.height;
+});
 
 const error = ref("");
 const loading = ref(false);
 const backendAddress = window.location.origin + "/api";
 
 function reset() {
-  board.value = defaultBoard;
+  board.value = defaultBoard();
 }
 
 async function renewWords() {
   loading.value = true;
+  error.value = "";
   try {
     const channel = createChannel(backendAddress);
     const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
