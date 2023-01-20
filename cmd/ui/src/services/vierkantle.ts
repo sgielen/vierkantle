@@ -11,6 +11,14 @@ export interface GetBoardResponse {
   board: Uint8Array;
 }
 
+export interface WordsForBoardRequest {
+  board: Uint8Array;
+}
+
+export interface WordsForBoardResponse {
+  board: Uint8Array;
+}
+
 export interface CreateTeamRequest {
   name: string;
 }
@@ -139,6 +147,80 @@ export const GetBoardResponse = {
 
   fromPartial(object: DeepPartial<GetBoardResponse>): GetBoardResponse {
     const message = createBaseGetBoardResponse();
+    message.board = object.board ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseWordsForBoardRequest(): WordsForBoardRequest {
+  return { board: new Uint8Array() };
+}
+
+export const WordsForBoardRequest = {
+  encode(message: WordsForBoardRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.board.length !== 0) {
+      writer.uint32(10).bytes(message.board);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): WordsForBoardRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWordsForBoardRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.board = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<WordsForBoardRequest>): WordsForBoardRequest {
+    const message = createBaseWordsForBoardRequest();
+    message.board = object.board ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseWordsForBoardResponse(): WordsForBoardResponse {
+  return { board: new Uint8Array() };
+}
+
+export const WordsForBoardResponse = {
+  encode(message: WordsForBoardResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.board.length !== 0) {
+      writer.uint32(10).bytes(message.board);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): WordsForBoardResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWordsForBoardResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.board = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<WordsForBoardResponse>): WordsForBoardResponse {
+    const message = createBaseWordsForBoardResponse();
     message.board = object.board ?? new Uint8Array();
     return message;
   },
@@ -567,6 +649,15 @@ export const VierkantleServiceDefinition = {
       responseStream: false,
       options: {},
     },
+    /** Generator */
+    wordsForBoard: {
+      name: "WordsForBoard",
+      requestType: WordsForBoardRequest,
+      requestStream: false,
+      responseType: WordsForBoardResponse,
+      responseStream: false,
+      options: {},
+    },
     teamStream: {
       name: "TeamStream",
       requestType: TeamStreamClientMessage,
@@ -580,6 +671,11 @@ export const VierkantleServiceDefinition = {
 
 export interface VierkantleServiceImplementation<CallContextExt = {}> {
   getBoard(request: GetBoardRequest, context: CallContext & CallContextExt): Promise<DeepPartial<GetBoardResponse>>;
+  /** Generator */
+  wordsForBoard(
+    request: WordsForBoardRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<WordsForBoardResponse>>;
   teamStream(
     request: AsyncIterable<TeamStreamClientMessage>,
     context: CallContext & CallContextExt,
@@ -588,6 +684,11 @@ export interface VierkantleServiceImplementation<CallContextExt = {}> {
 
 export interface VierkantleServiceClient<CallOptionsExt = {}> {
   getBoard(request: DeepPartial<GetBoardRequest>, options?: CallOptions & CallOptionsExt): Promise<GetBoardResponse>;
+  /** Generator */
+  wordsForBoard(
+    request: DeepPartial<WordsForBoardRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<WordsForBoardResponse>;
   teamStream(
     request: AsyncIterable<DeepPartial<TeamStreamClientMessage>>,
     options?: CallOptions & CallOptionsExt,

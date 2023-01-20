@@ -94,7 +94,7 @@
 
 <script setup lang="ts">
 import VierkantleBoard from 'components/VierkantleBoard.vue';
-import { Board, WordInBoard } from 'src/components/models';
+import { Board } from 'src/components/models';
 import { computed, onMounted, ref, reactive } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { Multiplayer } from 'src/services/multiplayer';

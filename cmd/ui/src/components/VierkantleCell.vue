@@ -1,8 +1,10 @@
 <template>
-  <div class="cell" :class="{'unused' : props.state.used == 0}">
-    <span class="letter">
+  <div class="cell" :class="{'unused' : props.state.used == 0}" @dblclick="doubleClicked">
+    <span v-if="!editing" class="letter">
       {{ props.letter }}
     </span>
+    <input v-if="editing" ref="letterInput" class="letter-input" type="text" :placeholder="props.letter" @keyup="keyUp" @blur="blur" />
+
     <span class="annotation firstLetter" v-if="props.state.begins && props.showBegins">
       {{ props.state.begins }}
     </span>
@@ -13,14 +15,51 @@
 </template>
 
 <script setup lang="ts">
+import { ref, nextTick } from 'vue';
 import { CellState } from './models';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   letter: string,
   state: CellState,
   showBegins: boolean,
   showUsed: boolean,
+  generatorMode?: boolean,
+}>(), {
+  generatorMode: false,
+});
+
+const emit = defineEmits<{
+  (event: 'update:letter', letter: string): void,
 }>();
+
+const editing = ref(false);
+const letterInput = ref<HTMLInputElement>();
+
+function doubleClicked() {
+  if (props.generatorMode) {
+    editing.value = true;
+    nextTick(() => letterInput.value?.focus());
+  }
+}
+
+function keyUp(event: KeyboardEvent) {
+  if (props.generatorMode) {
+    if (event.key === 'Shift' || event.key === 'Control' || event.key === 'Alt') {
+      // don't stop editing when pressing modifiers
+      return;
+    }
+    editing.value = false;
+    if (event.key === ' ') {
+      emit("update:letter", "");
+    } else if (event.key.length === 1) {
+      emit("update:letter", event.key);
+    }
+  }
+}
+
+function blur() {
+  editing.value = false;
+}
 </script>
 
 <style scoped lang="scss">
@@ -42,6 +81,11 @@ const props = defineProps<{
   }
 
   .letter {
+    text-transform: uppercase;
+  }
+
+  .letter-input {
+    width: 1em;
     text-transform: uppercase;
   }
 

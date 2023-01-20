@@ -15,10 +15,12 @@
             :state="cellState(x, y)"
             :show-begins="true"
             :show-used="true"
+            :generator-mode="props.generatorMode"
             @mousedown="dragStart(x, y, $event)"
             @mousemove="dragMove(x, y, $event)"
             @vk_touchstart="dragStart(x, y, $event)"
             @vk_touchmove="dragMove(x, y, $event)"
+            @update:letter="updateLetter(x, y, $event)"
           />
         </template>
       </template>
@@ -40,12 +42,20 @@ import VierkantlePath from './VierkantlePath.vue';
 
 const props = withDefaults(defineProps<{
   board: Board,
+  generatorMode?: boolean,
 }>(), {
+  generatorMode: false,
 });
 
 const emit = defineEmits<{
+  // A word was guessed. Only when generatorMode is false.
   (event: 'word', word: string): void,
+
+  // A word is being guessed. Only when generatorMode is false.
   (event: 'partialWord', word: string): void,
+
+  // Emit an updated letter in the board. Only when generatorMode is true.
+  (event: 'update:letter', x: number, y: number, value: string): void,
 }>();
 
 function cellState(x: number, y: number): CellState {
@@ -102,6 +112,11 @@ function dragMove(x: number, y: number, event: MouseEvent | VierkantleTouchEvent
   if (path.value.length == 0) {
     // not pathing, ignore mouseover
     return
+  }
+
+  if (props.generatorMode) {
+    // don't path in generator mode
+    return;
   }
 
   // Only trigger on moves that are close to the center of the element
@@ -166,6 +181,12 @@ function touchEvent(type: "start" | "move", event: TouchEvent) {
     vkEvent.clientX = event.touches[0].clientX;
     vkEvent.clientY = event.touches[0].clientY;
     element.dispatchEvent(vkEvent);
+  }
+}
+
+function updateLetter(x: number, y: number, letter: string) {
+  if (props.generatorMode) {
+    emit("update:letter", x, y, letter);
   }
 }
 </script>

@@ -4,7 +4,7 @@
       <h6>{{ length }} letters</h6>
       <template v-for="([word, wstate]) in words" :key="word">
         <template v-if="!wstate.bonus">
-          <template v-if="wstate.guessed">
+          <template v-if="props.showAll || wstate.guessed">
             <code>{{ word }}</code><br/>
           </template>
           <template v-else>
@@ -20,9 +20,12 @@
 import { computed } from 'vue';
 import { WordInBoard } from './models';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   words: Record<string, WordInBoard>;
-}>();
+  showAll?: boolean,
+}>(), {
+  showAll: false,
+})
 
 const wordsByLength = computed((): [string, WordInBoard][][] => {
   var res = [] as [string, WordInBoard][][]
