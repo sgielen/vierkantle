@@ -23,6 +23,8 @@
           <div class="row q-gutter-sm q-ma-sm">
             <q-btn @click="renewWords" color="primary">Vernieuw woordenlijst</q-btn> <br />
             <q-btn @click="download" color="primary">Download bord</q-btn> <br />
+            <q-btn @click="(e) => chooseFile(e)" color="primary">Upload bord</q-btn> <br />
+            <q-input filled type="file" ref="qFile" v-model="file" v-show="false" />
           </div>
           <q-separator class="q-ma-sm" />
 
@@ -41,8 +43,8 @@
         <div class="game-wrap items-center justify-evenly">
           <LabelAutofit size="48" :value="numWords" />
           <LabelAutofit size="24" :value="usage" />
+          <LabelAutofit size="24" v-if="error" :value="error" />
           <div class="row items-center justify-evenly">
-            <div v-if="error">{{ error }}</div>
             <div class="game">
               <VierkantleBoard
                 :board="board"
@@ -66,6 +68,7 @@ import { createChannel, createClient } from 'nice-grpc-web';
 import { VierkantleServiceDefinition, VierkantleServiceClient } from '../services/vierkantle';
 import WordList from 'src/components/WordList.vue';
 import LabelAutofit from 'src/components/LabelAutofit.vue';
+import { QInput } from 'quasar';
 
 function defaultBoard(): Board {
   const b: Board = {
@@ -188,6 +191,31 @@ function download() {
     link.parentNode?.removeChild(link);
   }, 0);
 }
+
+const qFile = ref<QInput>()
+function chooseFile() {
+  (qFile.value?.getNativeElement() as HTMLElement).click();
+}
+
+const file = computed<FileList | File | undefined>({
+  get: () => { return undefined },
+  set: async (files: FileList | File | undefined) => {
+    if (!files) {
+      return;
+    }
+    const file: File = files.length ? (files as FileList)[0] : files as File;
+    if (!('text' in file)) {
+      return;
+    }
+    const json = await file.text();
+    try {
+      error.value = "";
+      board.value = JSON.parse(json);
+    } catch(e) {
+      error.value = e as string;
+    }
+  },
+});
 </script>
 
 <style lang="scss">
