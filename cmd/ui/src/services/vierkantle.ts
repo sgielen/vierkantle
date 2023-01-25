@@ -5,6 +5,7 @@ import * as _m0 from "protobufjs/minimal";
 export const protobufPackage = "nl.vierkantle";
 
 export interface GetBoardRequest {
+  /** Timezone offset in client's local time, as in Javascript Date.getTimezoneOffset() */
   timezoneOffsetMinutes: number;
 }
 
@@ -24,18 +25,24 @@ export interface SeedBoardRequest {
   seedWord: string;
   width: number;
   height: number;
+  attempts: number;
 }
 
 export interface SeedBoardResponse {
   board: Uint8Array;
+  attempts: number;
+  progress: number;
 }
 
 export interface FillInBoardRequest {
   board: Uint8Array;
+  attempts: number;
 }
 
 export interface FillInBoardResponse {
   board: Uint8Array;
+  attempts: number;
+  progress: number;
 }
 
 export interface CreateTeamRequest {
@@ -253,7 +260,7 @@ export const WordsForBoardResponse = {
 };
 
 function createBaseSeedBoardRequest(): SeedBoardRequest {
-  return { seedWord: "", width: 0, height: 0 };
+  return { seedWord: "", width: 0, height: 0, attempts: 0 };
 }
 
 export const SeedBoardRequest = {
@@ -266,6 +273,9 @@ export const SeedBoardRequest = {
     }
     if (message.height !== 0) {
       writer.uint32(24).int32(message.height);
+    }
+    if (message.attempts !== 0) {
+      writer.uint32(32).int32(message.attempts);
     }
     return writer;
   },
@@ -286,6 +296,9 @@ export const SeedBoardRequest = {
         case 3:
           message.height = reader.int32();
           break;
+        case 4:
+          message.attempts = reader.int32();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -299,18 +312,25 @@ export const SeedBoardRequest = {
     message.seedWord = object.seedWord ?? "";
     message.width = object.width ?? 0;
     message.height = object.height ?? 0;
+    message.attempts = object.attempts ?? 0;
     return message;
   },
 };
 
 function createBaseSeedBoardResponse(): SeedBoardResponse {
-  return { board: new Uint8Array() };
+  return { board: new Uint8Array(), attempts: 0, progress: 0 };
 }
 
 export const SeedBoardResponse = {
   encode(message: SeedBoardResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.board.length !== 0) {
       writer.uint32(10).bytes(message.board);
+    }
+    if (message.attempts !== 0) {
+      writer.uint32(16).int32(message.attempts);
+    }
+    if (message.progress !== 0) {
+      writer.uint32(24).int32(message.progress);
     }
     return writer;
   },
@@ -325,6 +345,12 @@ export const SeedBoardResponse = {
         case 1:
           message.board = reader.bytes();
           break;
+        case 2:
+          message.attempts = reader.int32();
+          break;
+        case 3:
+          message.progress = reader.int32();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -336,18 +362,23 @@ export const SeedBoardResponse = {
   fromPartial(object: DeepPartial<SeedBoardResponse>): SeedBoardResponse {
     const message = createBaseSeedBoardResponse();
     message.board = object.board ?? new Uint8Array();
+    message.attempts = object.attempts ?? 0;
+    message.progress = object.progress ?? 0;
     return message;
   },
 };
 
 function createBaseFillInBoardRequest(): FillInBoardRequest {
-  return { board: new Uint8Array() };
+  return { board: new Uint8Array(), attempts: 0 };
 }
 
 export const FillInBoardRequest = {
   encode(message: FillInBoardRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.board.length !== 0) {
       writer.uint32(10).bytes(message.board);
+    }
+    if (message.attempts !== 0) {
+      writer.uint32(16).int32(message.attempts);
     }
     return writer;
   },
@@ -362,6 +393,9 @@ export const FillInBoardRequest = {
         case 1:
           message.board = reader.bytes();
           break;
+        case 2:
+          message.attempts = reader.int32();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -373,18 +407,25 @@ export const FillInBoardRequest = {
   fromPartial(object: DeepPartial<FillInBoardRequest>): FillInBoardRequest {
     const message = createBaseFillInBoardRequest();
     message.board = object.board ?? new Uint8Array();
+    message.attempts = object.attempts ?? 0;
     return message;
   },
 };
 
 function createBaseFillInBoardResponse(): FillInBoardResponse {
-  return { board: new Uint8Array() };
+  return { board: new Uint8Array(), attempts: 0, progress: 0 };
 }
 
 export const FillInBoardResponse = {
   encode(message: FillInBoardResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.board.length !== 0) {
       writer.uint32(10).bytes(message.board);
+    }
+    if (message.attempts !== 0) {
+      writer.uint32(16).int32(message.attempts);
+    }
+    if (message.progress !== 0) {
+      writer.uint32(24).int32(message.progress);
     }
     return writer;
   },
@@ -399,6 +440,12 @@ export const FillInBoardResponse = {
         case 1:
           message.board = reader.bytes();
           break;
+        case 2:
+          message.attempts = reader.int32();
+          break;
+        case 3:
+          message.progress = reader.int32();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -410,6 +457,8 @@ export const FillInBoardResponse = {
   fromPartial(object: DeepPartial<FillInBoardResponse>): FillInBoardResponse {
     const message = createBaseFillInBoardResponse();
     message.board = object.board ?? new Uint8Array();
+    message.attempts = object.attempts ?? 0;
+    message.progress = object.progress ?? 0;
     return message;
   },
 };
@@ -851,7 +900,7 @@ export const VierkantleServiceDefinition = {
       requestType: SeedBoardRequest,
       requestStream: false,
       responseType: SeedBoardResponse,
-      responseStream: false,
+      responseStream: true,
       options: {},
     },
     fillInBoard: {
@@ -859,7 +908,7 @@ export const VierkantleServiceDefinition = {
       requestType: FillInBoardRequest,
       requestStream: false,
       responseType: FillInBoardResponse,
-      responseStream: false,
+      responseStream: true,
       options: {},
     },
     teamStream: {
@@ -880,11 +929,14 @@ export interface VierkantleServiceImplementation<CallContextExt = {}> {
     request: WordsForBoardRequest,
     context: CallContext & CallContextExt,
   ): Promise<DeepPartial<WordsForBoardResponse>>;
-  seedBoard(request: SeedBoardRequest, context: CallContext & CallContextExt): Promise<DeepPartial<SeedBoardResponse>>;
+  seedBoard(
+    request: SeedBoardRequest,
+    context: CallContext & CallContextExt,
+  ): ServerStreamingMethodResult<DeepPartial<SeedBoardResponse>>;
   fillInBoard(
     request: FillInBoardRequest,
     context: CallContext & CallContextExt,
-  ): Promise<DeepPartial<FillInBoardResponse>>;
+  ): ServerStreamingMethodResult<DeepPartial<FillInBoardResponse>>;
   teamStream(
     request: AsyncIterable<TeamStreamClientMessage>,
     context: CallContext & CallContextExt,
@@ -898,11 +950,14 @@ export interface VierkantleServiceClient<CallOptionsExt = {}> {
     request: DeepPartial<WordsForBoardRequest>,
     options?: CallOptions & CallOptionsExt,
   ): Promise<WordsForBoardResponse>;
-  seedBoard(request: DeepPartial<SeedBoardRequest>, options?: CallOptions & CallOptionsExt): Promise<SeedBoardResponse>;
+  seedBoard(
+    request: DeepPartial<SeedBoardRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): AsyncIterable<SeedBoardResponse>;
   fillInBoard(
     request: DeepPartial<FillInBoardRequest>,
     options?: CallOptions & CallOptionsExt,
-  ): Promise<FillInBoardResponse>;
+  ): AsyncIterable<FillInBoardResponse>;
   teamStream(
     request: AsyncIterable<DeepPartial<TeamStreamClientMessage>>,
     options?: CallOptions & CallOptionsExt,

@@ -31,16 +31,17 @@
           </div>
           <q-separator class="q-ma-sm" />
 
-          <template v-if="loading">
-            <q-circular-progress
-              indeterminate
+          <div v-if="loading" class="q-my-md q-mx-sm">
+            <q-linear-progress
+              :indeterminate="!loadingProgress"
+              :value="loadingProgress"
               rounded
-              size="50px"
+              instant-feedback
+              size="10px"
               color="primary"
-              class="q-ma-md"
             />
-          </template>
-          <WordList v-else :words="board.words" :configuring="true" @set-bonus="setWordBonus" />
+          </div>
+          <WordList :words="board.words" :configuring="true" @set-bonus="setWordBonus" />
         </div>
         <div class="game-wrap items-center justify-evenly">
           <LabelAutofit size="48" :value="numWords" />
@@ -107,6 +108,7 @@ const usage = computed(() => {
 
 const error = ref("");
 const loading = ref(false);
+const loadingProgress = ref(0);
 const backendAddress = window.location.origin + "/api";
 
 function reset() {
@@ -115,17 +117,26 @@ function reset() {
 
 const seedword = ref("");
 async function seed() {
+  loadingProgress.value = 0;
   loading.value = true;
   error.value = "";
   try {
     const channel = createChannel(backendAddress);
     const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
-    const boardResponse = await client.seedBoard({
+    const responses = client.seedBoard({
       seedWord: seedword.value,
       width: width.value,
       height: height.value,
+      attempts: 10000,
     });
-    board.value = JSON.parse(new TextDecoder().decode(boardResponse.board));
+    for await (const response of responses) {
+      if (response.board) {
+        board.value = JSON.parse(new TextDecoder().decode(response.board));
+      }
+      if (response.progress) {
+        loadingProgress.value = response.progress / response.attempts;
+      }
+    }
   } catch(e) {
     error.value = e as string;
   }
@@ -133,15 +144,24 @@ async function seed() {
 }
 
 async function fillIn() {
+  loadingProgress.value = 0;
   loading.value = true;
   error.value = "";
   try {
     const channel = createChannel(backendAddress);
     const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
-    const boardResponse = await client.fillInBoard({
+    const responses = client.fillInBoard({
       board: new TextEncoder().encode(JSON.stringify(board.value, null, 0)),
+      attempts: 10000,
     });
-    board.value = JSON.parse(new TextDecoder().decode(boardResponse.board));
+    for await (const response of responses) {
+      if (response.board) {
+        board.value = JSON.parse(new TextDecoder().decode(response.board));
+      }
+      if (response.progress) {
+        loadingProgress.value = response.progress / response.attempts;
+      }
+    }
   } catch(e) {
     error.value = e as string;
   }
@@ -199,6 +219,7 @@ function chooseFile() {
   (qFile.value?.getNativeElement() as HTMLElement).click();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const file = computed<any>({
   get: () => { return undefined },
   set: async (files: FileList | File | undefined) => {
