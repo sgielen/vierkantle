@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/sgielen/vierkantle/pkg/dictionary"
@@ -42,6 +43,7 @@ func (b *Board) PrefillRandomly(word string) error {
 		return nil
 	}
 
+	word = strings.ToLower(word)
 	path := b.randomPathWithLength(len(word), nil)
 	if path == nil {
 		return fmt.Errorf("the prefill word doesn't fit in the board :-(")
