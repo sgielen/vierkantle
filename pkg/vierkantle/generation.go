@@ -9,15 +9,10 @@ import (
 	"github.com/sgielen/vierkantle/pkg/dictionary"
 )
 
-var random *rand.Rand
-
-func init() {
-	random = rand.New(rand.NewSource(time.Now().UnixMilli()))
-}
-
 func (b *Board) randomPathWithLength(length int, path []Coord) []Coord {
 	nextPaths := b.NextNavigationsFrom(path)
 
+	random := rand.New(rand.NewSource(time.Now().UnixMilli()))
 	random.Shuffle(len(nextPaths), func(i, j int) {
 		nextPaths[i], nextPaths[j] = nextPaths[j], nextPaths[i]
 	})
@@ -55,6 +50,7 @@ func (b *Board) PrefillRandomly(word string) error {
 
 func (b *Board) FillRandomly() {
 	letters := []rune("abcdefghijklmnopqrstuvwxyz")
+	random := rand.New(rand.NewSource(time.Now().UnixMilli()))
 	for y := 0; y < b.Height; y++ {
 		for x := 0; x < b.Width; x++ {
 			if b.Cells[y][x] == '?' || b.Cells[y][x] == 0 {
