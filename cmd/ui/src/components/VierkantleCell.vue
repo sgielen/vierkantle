@@ -52,7 +52,7 @@ function keyUp(event: KeyboardEvent) {
     if (event.key === ' ') {
       emit("update:letter", "");
     } else if (event.key.length === 1) {
-      emit("update:letter", event.key);
+      emit("update:letter", event.key.toLowerCase());
     }
   }
 }
