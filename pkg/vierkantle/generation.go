@@ -38,6 +38,10 @@ func (b *Board) Fill(c rune) {
 }
 
 func (b *Board) PrefillRandomly(word string) error {
+	if len(word) == 0 {
+		return nil
+	}
+
 	path := b.randomPathWithLength(len(word), nil)
 	if path == nil {
 		return fmt.Errorf("the prefill word doesn't fit in the board :-(")
