@@ -134,8 +134,9 @@ function dragMove(x: number, y: number, event: MouseEvent | VierkantleTouchEvent
   const elementRect = element.getBoundingClientRect();
   const xFactor = (event.clientX - elementRect.x) / elementRect.width;
   const yFactor = (event.clientY - elementRect.y) / elementRect.height;
-  const padding = 0.25;
-  if (xFactor < padding || xFactor > (padding + 0.5) || yFactor < padding || yFactor > (padding + 0.5)) {
+  // The distance from the center of the element
+  const distFromCenter = Math.sqrt(Math.pow(xFactor - 0.5, 2) + Math.pow(yFactor - 0.5, 2));
+  if (distFromCenter > 0.25) {
     // Event occurred outside of the action zone, so ignore it
     return
   }
