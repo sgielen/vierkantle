@@ -14,6 +14,15 @@
         class="q-mx-sm"
         dense
         color="secondary"
+        icon="leaderboard"
+        aria-label="Scorebord"
+        @click="toggleLeaderboard"
+      />
+
+      <q-btn
+        class="q-mx-sm"
+        dense
+        color="secondary"
         icon="groups"
         aria-label="Multiplayer"
         @click="toggleMultiplayer"
@@ -69,6 +78,21 @@
         </q-card>
       </q-dialog>
 
+      <q-dialog v-model="leaderboardOpen">
+        <q-card style="width: 650px">
+          <q-card-section>
+            <p class="text-h6">Scorebord</p>
+          </q-card-section>
+          <q-separator />
+          <q-card-section>
+            <VierkantleLeaderboard
+              :backend="backendAddress"
+              :anonymousId="anonymousId"
+            />
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+
       <div class="game-page row items-center q-ma-xl">
         <div class="wordlist" v-show="wordListOpen">
           <WordList v-if="board" :words="board.words" />
@@ -86,6 +110,10 @@
               />
             </div>
           </div>
+          <div class="row justify-between">
+            <div class="q-px-xl">{{ timeSpent }}</div>
+            <div></div>
+          </div>
         </div>
       </div>
     </q-page>
@@ -102,11 +130,20 @@ import VierkantleTop from 'src/components/VierkantleTop.vue';
 import { createChannel, createClient } from 'nice-grpc-web';
 import { VierkantleServiceDefinition, VierkantleServiceClient, TeamStreamServerMessage } from '../services/vierkantle';
 import WordList from 'src/components/WordList.vue';
+import VierkantleLeaderboard from 'src/components/VierkantleLeaderboard.vue';
 
 const board_ = useStorage<Board | undefined>("board", undefined, undefined, { serializer: StorageSerializers.object });
+const anonymousId = useStorage("anonymousId", Math.floor(Math.random() * 4294967295 /* UINT32_MAX */));
+const seconds = useStorage("seconds", 0);
 
 const board = computed(() => {
   return board_.value;
+});
+
+const timeSpent = computed(() => {
+  const min = Math.floor(seconds.value / 60);
+  const sec = seconds.value % 60;
+  return min + ":" + sec.toFixed(0).padStart(2, "0");
 });
 
 const error = ref("");
@@ -127,6 +164,13 @@ onMounted(async () => {
   board_.value = null;
   */
 
+  seconds.value ??= 0;
+  setInterval(() => {
+    if (document.hasFocus() && !boardIsDone.value) {
+      seconds.value! += 1;
+    }
+  }, 1000)
+
   // Download a new board
   try {
     const channel = createChannel(backendAddress);
@@ -137,6 +181,7 @@ onMounted(async () => {
     const board = JSON.parse(new TextDecoder().decode(boardResponse.board));
     if (!board_.value || boardLetters(board) != boardLetters(board_.value)) {
       board_.value = board;
+      seconds.value = 0;
     }
   } catch(e) {
     error.value = e as string;
@@ -154,6 +199,16 @@ const multiplayerOpen = ref(false);
 function toggleMultiplayer() {
   multiplayerOpen.value = !multiplayerOpen.value;
 }
+
+const leaderboardOpen = ref(false);
+
+function toggleLeaderboard() {
+  leaderboardOpen.value = !leaderboardOpen.value;
+}
+
+const boardIsDone = computed(() => {
+  return Object.values(board.value?.words ?? {}).find((f) => !f.guessed && !f.bonus) === undefined;
+});
 
 function boardLetters(b: Board): string {
   return b.cells.reduce((p, c) => { return [...p, c.join("")] }).join("");
@@ -206,6 +261,8 @@ function word(who: string | null, word: string) {
     lastWords.value.shift();
   }, 4000);
 
+  updateScore();
+
   if (multiplayer.value && isOurs) {
     multiplayer.value.sendWord(word);
   }
@@ -225,7 +282,6 @@ function onMessage(message: TeamStreamServerMessage): void {
 }
 
 const multiplayerUrl = computed(() => {
-  console.log(window.location);
   return window.location.origin + "/#" + multiplayer.value?.token;
 })
 
@@ -329,6 +385,21 @@ async function stopMultiplayer() {
   multiplayer.value?.disconnect();
   multiplayerError.value = undefined;
   multiplayer.value = undefined;
+}
+
+async function updateScore() {
+  try {
+    const channel = createChannel(backendAddress);
+    const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
+    await client.submitScore({
+      anonymousId: anonymousId.value,
+      teamSize: multiplayer.value ? multiplayer.value.players.length : 0,
+      words: Object.values(board.value!.words).filter((f) => f.guessed && !f.bonus).length,
+      seconds: seconds.value,
+    });
+  } catch(e) {
+    // ignore error
+  }
 }
 </script>
 

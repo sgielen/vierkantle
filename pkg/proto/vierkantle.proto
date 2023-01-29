@@ -7,6 +7,9 @@ option go_package = "github.com/sgielen/vierkantle/pkg/proto";
 service VierkantleService {
   rpc GetBoard(GetBoardRequest) returns (GetBoardResponse) {}
 
+  rpc SubmitScore(SubmitScoreRequest) returns (SubmitScoreResponse) {}
+  rpc GetScores(GetScoresRequest) returns (GetScoresResponse) {}
+
   // Generator
   rpc WordsForBoard(WordsForBoardRequest) returns (WordsForBoardResponse) {}
   rpc SeedBoard(SeedBoardRequest) returns (stream SeedBoardResponse) {}
@@ -22,6 +25,34 @@ message GetBoardRequest {
 
 message GetBoardResponse {
   bytes board = 1;
+}
+
+message SubmitScoreRequest {
+  int32 anonymous_id = 1;
+  int32 team_size = 2;
+  int32 words = 3;
+  int32 seconds = 4;
+}
+
+message SubmitScoreResponse {
+}
+
+message GetScoresRequest {
+  uint32 index = 1;
+  uint32 amount = 2;
+  uint32 my_anonymous_id = 3;
+}
+
+message GetScoresResponse {
+  message Score {
+    string name = 1;
+    int32 team_size = 2;
+    int32 words = 3;
+    int32 seconds = 4;
+  }
+  map<int32, Score> scores = 1;
+  int32 total_scores = 2;
+  int32 your_score = 3;
 }
 
 message WordsForBoardRequest {

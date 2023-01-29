@@ -19,6 +19,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type VierkantleServiceClient interface {
 	GetBoard(ctx context.Context, in *GetBoardRequest, opts ...grpc.CallOption) (*GetBoardResponse, error)
+	SubmitScore(ctx context.Context, in *SubmitScoreRequest, opts ...grpc.CallOption) (*SubmitScoreResponse, error)
+	GetScores(ctx context.Context, in *GetScoresRequest, opts ...grpc.CallOption) (*GetScoresResponse, error)
 	// Generator
 	WordsForBoard(ctx context.Context, in *WordsForBoardRequest, opts ...grpc.CallOption) (*WordsForBoardResponse, error)
 	SeedBoard(ctx context.Context, in *SeedBoardRequest, opts ...grpc.CallOption) (VierkantleService_SeedBoardClient, error)
@@ -37,6 +39,24 @@ func NewVierkantleServiceClient(cc grpc.ClientConnInterface) VierkantleServiceCl
 func (c *vierkantleServiceClient) GetBoard(ctx context.Context, in *GetBoardRequest, opts ...grpc.CallOption) (*GetBoardResponse, error) {
 	out := new(GetBoardResponse)
 	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/GetBoard", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vierkantleServiceClient) SubmitScore(ctx context.Context, in *SubmitScoreRequest, opts ...grpc.CallOption) (*SubmitScoreResponse, error) {
+	out := new(SubmitScoreResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/SubmitScore", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vierkantleServiceClient) GetScores(ctx context.Context, in *GetScoresRequest, opts ...grpc.CallOption) (*GetScoresResponse, error) {
+	out := new(GetScoresResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/GetScores", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -152,6 +172,8 @@ func (x *vierkantleServiceTeamStreamClient) Recv() (*TeamStreamServerMessage, er
 // for forward compatibility
 type VierkantleServiceServer interface {
 	GetBoard(context.Context, *GetBoardRequest) (*GetBoardResponse, error)
+	SubmitScore(context.Context, *SubmitScoreRequest) (*SubmitScoreResponse, error)
+	GetScores(context.Context, *GetScoresRequest) (*GetScoresResponse, error)
 	// Generator
 	WordsForBoard(context.Context, *WordsForBoardRequest) (*WordsForBoardResponse, error)
 	SeedBoard(*SeedBoardRequest, VierkantleService_SeedBoardServer) error
@@ -165,6 +187,12 @@ type UnimplementedVierkantleServiceServer struct {
 
 func (UnimplementedVierkantleServiceServer) GetBoard(context.Context, *GetBoardRequest) (*GetBoardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBoard not implemented")
+}
+func (UnimplementedVierkantleServiceServer) SubmitScore(context.Context, *SubmitScoreRequest) (*SubmitScoreResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SubmitScore not implemented")
+}
+func (UnimplementedVierkantleServiceServer) GetScores(context.Context, *GetScoresRequest) (*GetScoresResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetScores not implemented")
 }
 func (UnimplementedVierkantleServiceServer) WordsForBoard(context.Context, *WordsForBoardRequest) (*WordsForBoardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WordsForBoard not implemented")
@@ -204,6 +232,42 @@ func _VierkantleService_GetBoard_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(VierkantleServiceServer).GetBoard(ctx, req.(*GetBoardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VierkantleService_SubmitScore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubmitScoreRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).SubmitScore(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/SubmitScore",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).SubmitScore(ctx, req.(*SubmitScoreRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VierkantleService_GetScores_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetScoresRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).GetScores(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/GetScores",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).GetScores(ctx, req.(*GetScoresRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -304,6 +368,14 @@ var VierkantleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBoard",
 			Handler:    _VierkantleService_GetBoard_Handler,
+		},
+		{
+			MethodName: "SubmitScore",
+			Handler:    _VierkantleService_SubmitScore_Handler,
+		},
+		{
+			MethodName: "GetScores",
+			Handler:    _VierkantleService_GetScores_Handler,
 		},
 		{
 			MethodName: "WordsForBoard",

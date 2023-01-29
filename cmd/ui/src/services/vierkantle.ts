@@ -13,6 +13,40 @@ export interface GetBoardResponse {
   board: Uint8Array;
 }
 
+export interface SubmitScoreRequest {
+  anonymousId: number;
+  teamSize: number;
+  words: number;
+  seconds: number;
+}
+
+export interface SubmitScoreResponse {
+}
+
+export interface GetScoresRequest {
+  index: number;
+  amount: number;
+  myAnonymousId: number;
+}
+
+export interface GetScoresResponse {
+  scores: { [key: number]: GetScoresResponse_Score };
+  totalScores: number;
+  yourScore: number;
+}
+
+export interface GetScoresResponse_Score {
+  name: string;
+  teamSize: number;
+  words: number;
+  seconds: number;
+}
+
+export interface GetScoresResponse_ScoresEntry {
+  key: number;
+  value: GetScoresResponse_Score | undefined;
+}
+
 export interface WordsForBoardRequest {
   board: Uint8Array;
 }
@@ -181,6 +215,311 @@ export const GetBoardResponse = {
   fromPartial(object: DeepPartial<GetBoardResponse>): GetBoardResponse {
     const message = createBaseGetBoardResponse();
     message.board = object.board ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseSubmitScoreRequest(): SubmitScoreRequest {
+  return { anonymousId: 0, teamSize: 0, words: 0, seconds: 0 };
+}
+
+export const SubmitScoreRequest = {
+  encode(message: SubmitScoreRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.anonymousId !== 0) {
+      writer.uint32(8).int32(message.anonymousId);
+    }
+    if (message.teamSize !== 0) {
+      writer.uint32(16).int32(message.teamSize);
+    }
+    if (message.words !== 0) {
+      writer.uint32(24).int32(message.words);
+    }
+    if (message.seconds !== 0) {
+      writer.uint32(32).int32(message.seconds);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): SubmitScoreRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSubmitScoreRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.anonymousId = reader.int32();
+          break;
+        case 2:
+          message.teamSize = reader.int32();
+          break;
+        case 3:
+          message.words = reader.int32();
+          break;
+        case 4:
+          message.seconds = reader.int32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<SubmitScoreRequest>): SubmitScoreRequest {
+    const message = createBaseSubmitScoreRequest();
+    message.anonymousId = object.anonymousId ?? 0;
+    message.teamSize = object.teamSize ?? 0;
+    message.words = object.words ?? 0;
+    message.seconds = object.seconds ?? 0;
+    return message;
+  },
+};
+
+function createBaseSubmitScoreResponse(): SubmitScoreResponse {
+  return {};
+}
+
+export const SubmitScoreResponse = {
+  encode(_: SubmitScoreResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): SubmitScoreResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSubmitScoreResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(_: DeepPartial<SubmitScoreResponse>): SubmitScoreResponse {
+    const message = createBaseSubmitScoreResponse();
+    return message;
+  },
+};
+
+function createBaseGetScoresRequest(): GetScoresRequest {
+  return { index: 0, amount: 0, myAnonymousId: 0 };
+}
+
+export const GetScoresRequest = {
+  encode(message: GetScoresRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.index !== 0) {
+      writer.uint32(8).uint32(message.index);
+    }
+    if (message.amount !== 0) {
+      writer.uint32(16).uint32(message.amount);
+    }
+    if (message.myAnonymousId !== 0) {
+      writer.uint32(24).uint32(message.myAnonymousId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetScoresRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetScoresRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.index = reader.uint32();
+          break;
+        case 2:
+          message.amount = reader.uint32();
+          break;
+        case 3:
+          message.myAnonymousId = reader.uint32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<GetScoresRequest>): GetScoresRequest {
+    const message = createBaseGetScoresRequest();
+    message.index = object.index ?? 0;
+    message.amount = object.amount ?? 0;
+    message.myAnonymousId = object.myAnonymousId ?? 0;
+    return message;
+  },
+};
+
+function createBaseGetScoresResponse(): GetScoresResponse {
+  return { scores: {}, totalScores: 0, yourScore: 0 };
+}
+
+export const GetScoresResponse = {
+  encode(message: GetScoresResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    Object.entries(message.scores).forEach(([key, value]) => {
+      GetScoresResponse_ScoresEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
+    });
+    if (message.totalScores !== 0) {
+      writer.uint32(16).int32(message.totalScores);
+    }
+    if (message.yourScore !== 0) {
+      writer.uint32(24).int32(message.yourScore);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetScoresResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetScoresResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          const entry1 = GetScoresResponse_ScoresEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.scores[entry1.key] = entry1.value;
+          }
+          break;
+        case 2:
+          message.totalScores = reader.int32();
+          break;
+        case 3:
+          message.yourScore = reader.int32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<GetScoresResponse>): GetScoresResponse {
+    const message = createBaseGetScoresResponse();
+    message.scores = Object.entries(object.scores ?? {}).reduce<{ [key: number]: GetScoresResponse_Score }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[Number(key)] = GetScoresResponse_Score.fromPartial(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    message.totalScores = object.totalScores ?? 0;
+    message.yourScore = object.yourScore ?? 0;
+    return message;
+  },
+};
+
+function createBaseGetScoresResponse_Score(): GetScoresResponse_Score {
+  return { name: "", teamSize: 0, words: 0, seconds: 0 };
+}
+
+export const GetScoresResponse_Score = {
+  encode(message: GetScoresResponse_Score, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.teamSize !== 0) {
+      writer.uint32(16).int32(message.teamSize);
+    }
+    if (message.words !== 0) {
+      writer.uint32(24).int32(message.words);
+    }
+    if (message.seconds !== 0) {
+      writer.uint32(32).int32(message.seconds);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetScoresResponse_Score {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetScoresResponse_Score();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.name = reader.string();
+          break;
+        case 2:
+          message.teamSize = reader.int32();
+          break;
+        case 3:
+          message.words = reader.int32();
+          break;
+        case 4:
+          message.seconds = reader.int32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<GetScoresResponse_Score>): GetScoresResponse_Score {
+    const message = createBaseGetScoresResponse_Score();
+    message.name = object.name ?? "";
+    message.teamSize = object.teamSize ?? 0;
+    message.words = object.words ?? 0;
+    message.seconds = object.seconds ?? 0;
+    return message;
+  },
+};
+
+function createBaseGetScoresResponse_ScoresEntry(): GetScoresResponse_ScoresEntry {
+  return { key: 0, value: undefined };
+}
+
+export const GetScoresResponse_ScoresEntry = {
+  encode(message: GetScoresResponse_ScoresEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== 0) {
+      writer.uint32(8).int32(message.key);
+    }
+    if (message.value !== undefined) {
+      GetScoresResponse_Score.encode(message.value, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetScoresResponse_ScoresEntry {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetScoresResponse_ScoresEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.key = reader.int32();
+          break;
+        case 2:
+          message.value = GetScoresResponse_Score.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<GetScoresResponse_ScoresEntry>): GetScoresResponse_ScoresEntry {
+    const message = createBaseGetScoresResponse_ScoresEntry();
+    message.key = object.key ?? 0;
+    message.value = (object.value !== undefined && object.value !== null)
+      ? GetScoresResponse_Score.fromPartial(object.value)
+      : undefined;
     return message;
   },
 };
@@ -886,6 +1225,22 @@ export const VierkantleServiceDefinition = {
       responseStream: false,
       options: {},
     },
+    submitScore: {
+      name: "SubmitScore",
+      requestType: SubmitScoreRequest,
+      requestStream: false,
+      responseType: SubmitScoreResponse,
+      responseStream: false,
+      options: {},
+    },
+    getScores: {
+      name: "GetScores",
+      requestType: GetScoresRequest,
+      requestStream: false,
+      responseType: GetScoresResponse,
+      responseStream: false,
+      options: {},
+    },
     /** Generator */
     wordsForBoard: {
       name: "WordsForBoard",
@@ -924,6 +1279,11 @@ export const VierkantleServiceDefinition = {
 
 export interface VierkantleServiceImplementation<CallContextExt = {}> {
   getBoard(request: GetBoardRequest, context: CallContext & CallContextExt): Promise<DeepPartial<GetBoardResponse>>;
+  submitScore(
+    request: SubmitScoreRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<SubmitScoreResponse>>;
+  getScores(request: GetScoresRequest, context: CallContext & CallContextExt): Promise<DeepPartial<GetScoresResponse>>;
   /** Generator */
   wordsForBoard(
     request: WordsForBoardRequest,
@@ -945,6 +1305,11 @@ export interface VierkantleServiceImplementation<CallContextExt = {}> {
 
 export interface VierkantleServiceClient<CallOptionsExt = {}> {
   getBoard(request: DeepPartial<GetBoardRequest>, options?: CallOptions & CallOptionsExt): Promise<GetBoardResponse>;
+  submitScore(
+    request: DeepPartial<SubmitScoreRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<SubmitScoreResponse>;
+  getScores(request: DeepPartial<GetScoresRequest>, options?: CallOptions & CallOptionsExt): Promise<GetScoresResponse>;
   /** Generator */
   wordsForBoard(
     request: DeepPartial<WordsForBoardRequest>,
