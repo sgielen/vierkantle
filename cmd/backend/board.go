@@ -146,6 +146,10 @@ func (s *vierkantleService) SeedBoard(req *pb.SeedBoardRequest, stream pb.Vierka
 		}
 	}
 
+	if bestBoard == nil {
+		return fmt.Errorf("failed to generate any board")
+	}
+
 	newBoard, err := bestBoard.PrintBoardJson(bestWords)
 	if err != nil {
 		return err
@@ -203,6 +207,10 @@ func (s *vierkantleService) FillInBoard(req *pb.FillInBoardRequest, stream pb.Vi
 		} else {
 			nextSend -= 1
 		}
+	}
+
+	if bestBoard == nil {
+		return fmt.Errorf("failed to generate any board")
 	}
 
 	newBoard, err := bestBoard.PrintBoardJson(bestWords)
