@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	pb "github.com/sgielen/vierkantle/pkg/proto"
 	"google.golang.org/grpc"
@@ -50,7 +52,15 @@ func main() {
 		log.Printf("Warning: failed to stat boards directory %s, won't offer boards to clients", *boards)
 	}
 
-	grpcServer := grpc.NewServer()
+	// Set up a gRPC server with interceptors for e.g. authentication and panic prevention
+	grpcServer := grpc.NewServer(
+		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
+			grpc_recovery.StreamServerInterceptor(),
+		)),
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			grpc_recovery.UnaryServerInterceptor(),
+		)),
+	)
 	pb.RegisterVierkantleServiceServer(grpcServer,
 		&vierkantleService{
 			log:        log.New(os.Stderr, "vierkantle: ", log.LstdFlags),

@@ -77,6 +77,10 @@ func (s *vierkantleService) GetScores(ctx context.Context, req *pb.GetScoresRequ
 		return nil, fmt.Errorf("max amount is 1000")
 	}
 
+	if int32(req.Index) < 0 {
+		req.Index = 0
+	}
+
 	// Note: both req.Index and end may be >= len(scores)
 	end := int32(req.Index + req.Amount)
 

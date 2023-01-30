@@ -52,11 +52,10 @@
 
 <script setup lang="ts">
 import { GetScoresResponse, GetScoresResponse_Score } from 'src/services/vierkantle';
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { createChannel, createClient } from 'nice-grpc-web';
 import { VierkantleServiceDefinition, VierkantleServiceClient } from '../services/vierkantle';
 import { QVirtualScroll } from 'quasar';
-import { W } from 'app/dist/spa/assets/index.ed1c1145';
 
 const props = defineProps<{
   backend: string,
@@ -110,6 +109,9 @@ function formatTime(seconds: number): string {
 }
 
 async function ensureItems({ from, to }: { from: number, to: number }): Promise<GetScoresResponse | undefined> {
+  if (from < 0) {
+    from = 0;
+  }
   let needFetchFrom: number | undefined;
   for(let i = from; i <= to; ++i) {
     if (!scoreBoard[i]) {
