@@ -81,7 +81,15 @@
       <q-dialog v-model="leaderboardOpen">
         <q-card style="width: 650px">
           <q-card-section>
-            <p class="text-h6">Scorebord</p>
+            <div class="row justify-between">
+              <div><p class="text-h6">Scorebord</p></div>
+              <div>
+                <q-toggle
+                  v-model="enableSubmitScores"
+                  label="Stuur scores"
+                />
+              </div>
+            </div>
           </q-card-section>
           <q-separator />
           <q-card-section>
@@ -135,6 +143,7 @@ import VierkantleLeaderboard from 'src/components/VierkantleLeaderboard.vue';
 const board_ = useStorage<Board | undefined>("board", undefined, undefined, { serializer: StorageSerializers.object });
 const anonymousId = useStorage("anonymousId", Math.floor(Math.random() * 4294967295 /* UINT32_MAX */));
 const seconds = useStorage("seconds", 0);
+const enableSubmitScores = useStorage("enableSubmitScores", true);
 
 const board = computed(() => {
   return board_.value;
@@ -388,6 +397,9 @@ async function stopMultiplayer() {
 }
 
 async function updateScore() {
+  if (!enableSubmitScores.value) {
+    return;
+  }
   try {
     const channel = createChannel(backendAddress);
     const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
