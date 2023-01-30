@@ -77,16 +77,13 @@ func (s *vierkantleService) GetScores(ctx context.Context, req *pb.GetScoresRequ
 		return nil, fmt.Errorf("max amount is 1000")
 	}
 
-	// Note: req.Index may be >= len(scores)
+	// Note: both req.Index and end may be >= len(scores)
 	end := int32(req.Index + req.Amount)
-	if end > int32(len(scores)) {
-		end = int32(len(scores))
-	}
 
 	res := &pb.GetScoresResponse{}
 	res.Scores = make(map[int32]*pb.GetScoresResponse_Score, req.Amount)
 	res.TotalScores = int32(len(scores))
-	for i := int32(req.Index); i < end; i += 1 {
+	for i := int32(req.Index); i < end && i < int32(len(scores)); i += 1 {
 		score := scores[i]
 		res.Scores[i] = &pb.GetScoresResponse_Score{
 			Name:     "",
