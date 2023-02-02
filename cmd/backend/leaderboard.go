@@ -32,7 +32,7 @@ func resetScoresIfNecessary() {
 
 	// If the last action time was before 12:00 pm Europe/Amsterdam time,
 	// and the new action time is after, return true.
-	if lastActionTime.Hour() < 12 && now.Hour() > 12 {
+	if lastActionTime.Hour() < 12 && now.Hour() >= 12 {
 		scores = nil
 	}
 	lastActionTime = now
