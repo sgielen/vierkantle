@@ -116,6 +116,14 @@ function reset() {
 }
 
 const seedword = ref("");
+
+const boardFilename = computed(() => {
+  if (seedword.value) {
+    return seedword.value + ".json";
+  }
+  return new Date().toISOString().slice(0, 10) + ".json";
+})
+
 async function seed() {
   loadingProgress.value = 0;
   loading.value = true;
@@ -196,7 +204,7 @@ function setWordBonus(word: string, bonus: boolean) {
 
 function download() {
   const json = JSON.stringify(board.value, null, 0);
-  const file = new File([json], "board.json");
+  const file = new File([json], boardFilename.value);
 
   const link = document.createElement("a");
   link.style.display = "none";
