@@ -11,6 +11,7 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	"github.com/sgielen/vierkantle/pkg/database"
 	pb "github.com/sgielen/vierkantle/pkg/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
@@ -47,6 +48,8 @@ func main() {
 	flag.Var(&wordLists, "words", "Read words from this word list")
 	flag.Var(&bonusLists, "bonus", "Read bonus words from this word list")
 	flag.Parse()
+
+	database.Init()
 
 	if b, err := os.Stat(*boards); err != nil || !b.IsDir() {
 		log.Printf("Warning: failed to stat boards directory %s, won't offer boards to clients", *boards)

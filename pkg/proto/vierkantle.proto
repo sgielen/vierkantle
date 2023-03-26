@@ -55,7 +55,7 @@ message GetScoresResponse {
   }
   map<int32, Score> scores = 1;
   int32 total_scores = 2;
-  int32 your_score = 3;
+  optional int32 your_score = 4;
 }
 
 message WordsForBoardRequest {

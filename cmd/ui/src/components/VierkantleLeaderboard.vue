@@ -20,7 +20,7 @@
 
     <template v-slot:default="{ item: score, index }: { item: GetScoresResponse_Score, index: number }">
       <tr
-        :class="{'ourScore': index == ourScore}"
+        :class="{'ourScore': index === ourScore}"
       >
         <td>#{{ index + 1 }}</td>
 
@@ -64,7 +64,7 @@ const props = defineProps<{
 }>();
 
 const fetchAhead = 10;
-const ourScore = ref(0);
+const ourScore = ref<number>();
 const scoreBoard = reactive([] as (GetScoresResponse_Score | undefined)[]);
 const virtualList = ref<QVirtualScroll>();
 
@@ -75,7 +75,7 @@ onMounted(async () => {
     await ensureItems({ from: scores.yourScore - fetchAhead, to: scores.yourScore + fetchAhead});
     virtualList.value?.scrollTo(scores.yourScore, "center-force");
     setTimeout(() => {
-      virtualList.value?.scrollTo(scores.yourScore, "center-force");
+      virtualList.value?.scrollTo(scores.yourScore!, "center-force");
     }, 100);
   }
 });
@@ -93,14 +93,14 @@ function getScores(index: number, amount: number): Promise<GetScoresResponse> {
 }
 
 function updateScoreboard(res: GetScoresResponse) {
-  if (res.yourScore != 0) {
+  if (res.yourScore !== undefined) {
     ourScore.value = res.yourScore;
   }
   Object.entries(res.scores).forEach(([k, v]) => {
     const key = typeof k === "string" ? Number(k) : k;
     scoreBoard[key] = v
   });
-  if (scoreBoard.length < res.totalScores) {
+  if (res.totalScores > 0 && scoreBoard.length < res.totalScores) {
     scoreBoard[res.totalScores - 1] = undefined;
   }
 }

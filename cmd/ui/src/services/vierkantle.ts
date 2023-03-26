@@ -35,7 +35,7 @@ export interface GetScoresRequest {
 export interface GetScoresResponse {
   scores: { [key: number]: GetScoresResponse_Score };
   totalScores: number;
-  yourScore: number;
+  yourScore?: number | undefined;
 }
 
 export interface GetScoresResponse_Score {
@@ -383,7 +383,7 @@ export const GetScoresRequest = {
 };
 
 function createBaseGetScoresResponse(): GetScoresResponse {
-  return { scores: {}, totalScores: 0, yourScore: 0 };
+  return { scores: {}, totalScores: 0, yourScore: undefined };
 }
 
 export const GetScoresResponse = {
@@ -394,8 +394,8 @@ export const GetScoresResponse = {
     if (message.totalScores !== 0) {
       writer.uint32(16).int32(message.totalScores);
     }
-    if (message.yourScore !== 0) {
-      writer.uint32(24).int32(message.yourScore);
+    if (message.yourScore !== undefined) {
+      writer.uint32(32).int32(message.yourScore);
     }
     return writer;
   },
@@ -416,7 +416,7 @@ export const GetScoresResponse = {
         case 2:
           message.totalScores = reader.int32();
           break;
-        case 3:
+        case 4:
           message.yourScore = reader.int32();
           break;
         default:
@@ -439,7 +439,7 @@ export const GetScoresResponse = {
       {},
     );
     message.totalScores = object.totalScores ?? 0;
-    message.yourScore = object.yourScore ?? 0;
+    message.yourScore = object.yourScore ?? undefined;
     return message;
   },
 };
