@@ -19,6 +19,7 @@ export interface SubmitScoreRequest {
   teamSize: number;
   words: number;
   seconds: number;
+  boardName: string;
 }
 
 export interface SubmitScoreResponse {
@@ -28,6 +29,7 @@ export interface GetScoresRequest {
   index: number;
   amount: number;
   myAnonymousId: number;
+  boardName: string;
 }
 
 export interface GetScoresResponse {
@@ -228,7 +230,7 @@ export const GetBoardResponse = {
 };
 
 function createBaseSubmitScoreRequest(): SubmitScoreRequest {
-  return { anonymousId: 0, teamSize: 0, words: 0, seconds: 0 };
+  return { anonymousId: 0, teamSize: 0, words: 0, seconds: 0, boardName: "" };
 }
 
 export const SubmitScoreRequest = {
@@ -244,6 +246,9 @@ export const SubmitScoreRequest = {
     }
     if (message.seconds !== 0) {
       writer.uint32(32).int32(message.seconds);
+    }
+    if (message.boardName !== "") {
+      writer.uint32(42).string(message.boardName);
     }
     return writer;
   },
@@ -267,6 +272,9 @@ export const SubmitScoreRequest = {
         case 4:
           message.seconds = reader.int32();
           break;
+        case 5:
+          message.boardName = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -281,6 +289,7 @@ export const SubmitScoreRequest = {
     message.teamSize = object.teamSize ?? 0;
     message.words = object.words ?? 0;
     message.seconds = object.seconds ?? 0;
+    message.boardName = object.boardName ?? "";
     return message;
   },
 };
@@ -316,7 +325,7 @@ export const SubmitScoreResponse = {
 };
 
 function createBaseGetScoresRequest(): GetScoresRequest {
-  return { index: 0, amount: 0, myAnonymousId: 0 };
+  return { index: 0, amount: 0, myAnonymousId: 0, boardName: "" };
 }
 
 export const GetScoresRequest = {
@@ -329,6 +338,9 @@ export const GetScoresRequest = {
     }
     if (message.myAnonymousId !== 0) {
       writer.uint32(24).uint32(message.myAnonymousId);
+    }
+    if (message.boardName !== "") {
+      writer.uint32(34).string(message.boardName);
     }
     return writer;
   },
@@ -349,6 +361,9 @@ export const GetScoresRequest = {
         case 3:
           message.myAnonymousId = reader.uint32();
           break;
+        case 4:
+          message.boardName = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -362,6 +377,7 @@ export const GetScoresRequest = {
     message.index = object.index ?? 0;
     message.amount = object.amount ?? 0;
     message.myAnonymousId = object.myAnonymousId ?? 0;
+    message.boardName = object.boardName ?? "";
     return message;
   },
 };

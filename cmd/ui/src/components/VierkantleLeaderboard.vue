@@ -59,6 +59,7 @@ import { QVirtualScroll } from 'quasar';
 
 const props = defineProps<{
   backend: string,
+  boardName: string,
   anonymousId: number,
 }>();
 
@@ -79,13 +80,15 @@ onMounted(async () => {
   }
 });
 
+const channel = createChannel(props.backend);
+const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
+
 function getScores(index: number, amount: number): Promise<GetScoresResponse> {
-  const channel = createChannel(props.backend);
-  const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
   return client.getScores({
     index,
     amount,
     myAnonymousId: props.anonymousId,
+    boardName: props.boardName,
   });
 }
 

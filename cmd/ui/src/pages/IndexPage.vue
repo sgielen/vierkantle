@@ -96,6 +96,7 @@
             <VierkantleLeaderboard
               :backend="backendAddress"
               :anonymousId="anonymousId"
+              :boardName="boardName"
             />
           </q-card-section>
         </q-card>
@@ -145,6 +146,7 @@ const anonymousId = useStorage("anonymousId", Math.floor(Math.random() * 4294967
 const seconds = useStorage("seconds", 0);
 const enableSubmitScores = useStorage("enableSubmitScores", true);
 
+const boardName = ref("");
 const board = computed(() => {
   return board_.value;
 });
@@ -158,21 +160,10 @@ const timeSpent = computed(() => {
 const error = ref("");
 const backendAddress = window.location.origin + "/api";
 
+const channel = createChannel(backendAddress);
+const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
+
 onMounted(async () => {
-  // TODO: Sometimes, I want to replace the board during the
-  // day. So, always download the board, and replace the stored
-  // one if it's different. Should find a way to do expiry, so
-  // this code doesn't have to always download it
-  /*
-  const today = new Date().toISOString().slice(0, 10);
-
-  if (board_.value && board_.value.loadedAt === today) {
-    // Today's board is already present, keep it
-    return
-  }
-  board_.value = null;
-  */
-
   seconds.value ??= 0;
   setInterval(() => {
     if (document.hasFocus() && !boardIsDone.value) {
@@ -180,13 +171,12 @@ onMounted(async () => {
     }
   }, 1000)
 
-  // Download a new board
+  // Download the board to check if there is a new one available
   try {
-    const channel = createChannel(backendAddress);
-    const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
     const boardResponse = await client.getBoard({
       timezoneOffsetMinutes: new Date().getTimezoneOffset(),
     });
+    boardName.value = boardResponse.name ?? "";
     const board = JSON.parse(new TextDecoder().decode(boardResponse.board));
     if (!board_.value || boardLetters(board) != boardLetters(board_.value)) {
       board_.value = board;
@@ -401,13 +391,12 @@ async function updateScore() {
     return;
   }
   try {
-    const channel = createChannel(backendAddress);
-    const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
     await client.submitScore({
       anonymousId: anonymousId.value,
       teamSize: multiplayer.value ? multiplayer.value.players.length : 0,
       words: Object.values(board.value!.words).filter((f) => f.guessed && !f.bonus).length,
       seconds: seconds.value,
+      boardName: boardName.value,
     });
   } catch(e) {
     // ignore error

@@ -33,6 +33,7 @@ message SubmitScoreRequest {
   int32 team_size = 2;
   int32 words = 3;
   int32 seconds = 4;
+  string boardName = 5;
 }
 
 message SubmitScoreResponse {
@@ -42,6 +43,7 @@ message GetScoresRequest {
   uint32 index = 1;
   uint32 amount = 2;
   uint32 my_anonymous_id = 3;
+  string boardName = 4;
 }
 
 message GetScoresResponse {
