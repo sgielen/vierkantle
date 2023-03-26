@@ -50,6 +50,38 @@ export interface GetScoresResponse_ScoresEntry {
   value: GetScoresResponse_Score | undefined;
 }
 
+export interface WhoamiRequest {
+}
+
+export interface WhoamiResponse {
+  username: string;
+}
+
+export interface StartLoginRequest {
+  /** Either username or email must be filled in. */
+  username: string;
+  email: string;
+}
+
+export interface StartLoginResponse {
+}
+
+export interface FinishLoginRequest {
+  token: string;
+}
+
+export interface FinishLoginResponse {
+  username: string;
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+}
+
+export interface RegisterResponse {
+}
+
 export interface WordsForBoardRequest {
   board: Uint8Array;
 }
@@ -236,7 +268,7 @@ function createBaseSubmitScoreRequest(): SubmitScoreRequest {
 export const SubmitScoreRequest = {
   encode(message: SubmitScoreRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.anonymousId !== 0) {
-      writer.uint32(8).int32(message.anonymousId);
+      writer.uint32(8).uint32(message.anonymousId);
     }
     if (message.teamSize !== 0) {
       writer.uint32(16).int32(message.teamSize);
@@ -261,7 +293,7 @@ export const SubmitScoreRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.anonymousId = reader.int32();
+          message.anonymousId = reader.uint32();
           break;
         case 2:
           message.teamSize = reader.int32();
@@ -544,6 +576,295 @@ export const GetScoresResponse_ScoresEntry = {
     message.value = (object.value !== undefined && object.value !== null)
       ? GetScoresResponse_Score.fromPartial(object.value)
       : undefined;
+    return message;
+  },
+};
+
+function createBaseWhoamiRequest(): WhoamiRequest {
+  return {};
+}
+
+export const WhoamiRequest = {
+  encode(_: WhoamiRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): WhoamiRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWhoamiRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(_: DeepPartial<WhoamiRequest>): WhoamiRequest {
+    const message = createBaseWhoamiRequest();
+    return message;
+  },
+};
+
+function createBaseWhoamiResponse(): WhoamiResponse {
+  return { username: "" };
+}
+
+export const WhoamiResponse = {
+  encode(message: WhoamiResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.username !== "") {
+      writer.uint32(10).string(message.username);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): WhoamiResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWhoamiResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.username = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<WhoamiResponse>): WhoamiResponse {
+    const message = createBaseWhoamiResponse();
+    message.username = object.username ?? "";
+    return message;
+  },
+};
+
+function createBaseStartLoginRequest(): StartLoginRequest {
+  return { username: "", email: "" };
+}
+
+export const StartLoginRequest = {
+  encode(message: StartLoginRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.username !== "") {
+      writer.uint32(10).string(message.username);
+    }
+    if (message.email !== "") {
+      writer.uint32(18).string(message.email);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StartLoginRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStartLoginRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.username = reader.string();
+          break;
+        case 2:
+          message.email = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<StartLoginRequest>): StartLoginRequest {
+    const message = createBaseStartLoginRequest();
+    message.username = object.username ?? "";
+    message.email = object.email ?? "";
+    return message;
+  },
+};
+
+function createBaseStartLoginResponse(): StartLoginResponse {
+  return {};
+}
+
+export const StartLoginResponse = {
+  encode(_: StartLoginResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StartLoginResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStartLoginResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(_: DeepPartial<StartLoginResponse>): StartLoginResponse {
+    const message = createBaseStartLoginResponse();
+    return message;
+  },
+};
+
+function createBaseFinishLoginRequest(): FinishLoginRequest {
+  return { token: "" };
+}
+
+export const FinishLoginRequest = {
+  encode(message: FinishLoginRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.token !== "") {
+      writer.uint32(10).string(message.token);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): FinishLoginRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFinishLoginRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.token = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<FinishLoginRequest>): FinishLoginRequest {
+    const message = createBaseFinishLoginRequest();
+    message.token = object.token ?? "";
+    return message;
+  },
+};
+
+function createBaseFinishLoginResponse(): FinishLoginResponse {
+  return { username: "" };
+}
+
+export const FinishLoginResponse = {
+  encode(message: FinishLoginResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.username !== "") {
+      writer.uint32(10).string(message.username);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): FinishLoginResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFinishLoginResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.username = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<FinishLoginResponse>): FinishLoginResponse {
+    const message = createBaseFinishLoginResponse();
+    message.username = object.username ?? "";
+    return message;
+  },
+};
+
+function createBaseRegisterRequest(): RegisterRequest {
+  return { username: "", email: "" };
+}
+
+export const RegisterRequest = {
+  encode(message: RegisterRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.username !== "") {
+      writer.uint32(10).string(message.username);
+    }
+    if (message.email !== "") {
+      writer.uint32(18).string(message.email);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): RegisterRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRegisterRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.username = reader.string();
+          break;
+        case 2:
+          message.email = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<RegisterRequest>): RegisterRequest {
+    const message = createBaseRegisterRequest();
+    message.username = object.username ?? "";
+    message.email = object.email ?? "";
+    return message;
+  },
+};
+
+function createBaseRegisterResponse(): RegisterResponse {
+  return {};
+}
+
+export const RegisterResponse = {
+  encode(_: RegisterResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): RegisterResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRegisterResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(_: DeepPartial<RegisterResponse>): RegisterResponse {
+    const message = createBaseRegisterResponse();
     return message;
   },
 };
@@ -1265,6 +1586,38 @@ export const VierkantleServiceDefinition = {
       responseStream: false,
       options: {},
     },
+    whoami: {
+      name: "Whoami",
+      requestType: WhoamiRequest,
+      requestStream: false,
+      responseType: WhoamiResponse,
+      responseStream: false,
+      options: {},
+    },
+    startLogin: {
+      name: "StartLogin",
+      requestType: StartLoginRequest,
+      requestStream: false,
+      responseType: StartLoginResponse,
+      responseStream: false,
+      options: {},
+    },
+    finishLogin: {
+      name: "FinishLogin",
+      requestType: FinishLoginRequest,
+      requestStream: false,
+      responseType: FinishLoginResponse,
+      responseStream: false,
+      options: {},
+    },
+    register: {
+      name: "Register",
+      requestType: RegisterRequest,
+      requestStream: false,
+      responseType: RegisterResponse,
+      responseStream: false,
+      options: {},
+    },
     /** Generator */
     wordsForBoard: {
       name: "WordsForBoard",
@@ -1308,6 +1661,16 @@ export interface VierkantleServiceImplementation<CallContextExt = {}> {
     context: CallContext & CallContextExt,
   ): Promise<DeepPartial<SubmitScoreResponse>>;
   getScores(request: GetScoresRequest, context: CallContext & CallContextExt): Promise<DeepPartial<GetScoresResponse>>;
+  whoami(request: WhoamiRequest, context: CallContext & CallContextExt): Promise<DeepPartial<WhoamiResponse>>;
+  startLogin(
+    request: StartLoginRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<StartLoginResponse>>;
+  finishLogin(
+    request: FinishLoginRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<FinishLoginResponse>>;
+  register(request: RegisterRequest, context: CallContext & CallContextExt): Promise<DeepPartial<RegisterResponse>>;
   /** Generator */
   wordsForBoard(
     request: WordsForBoardRequest,
@@ -1334,6 +1697,16 @@ export interface VierkantleServiceClient<CallOptionsExt = {}> {
     options?: CallOptions & CallOptionsExt,
   ): Promise<SubmitScoreResponse>;
   getScores(request: DeepPartial<GetScoresRequest>, options?: CallOptions & CallOptionsExt): Promise<GetScoresResponse>;
+  whoami(request: DeepPartial<WhoamiRequest>, options?: CallOptions & CallOptionsExt): Promise<WhoamiResponse>;
+  startLogin(
+    request: DeepPartial<StartLoginRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<StartLoginResponse>;
+  finishLogin(
+    request: DeepPartial<FinishLoginRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<FinishLoginResponse>;
+  register(request: DeepPartial<RegisterRequest>, options?: CallOptions & CallOptionsExt): Promise<RegisterResponse>;
   /** Generator */
   wordsForBoard(
     request: DeepPartial<WordsForBoardRequest>,

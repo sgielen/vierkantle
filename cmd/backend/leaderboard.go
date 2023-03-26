@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/jackc/pgx/v4"
@@ -16,12 +17,22 @@ func (s *vierkantleService) SubmitScore(ctx context.Context, req *pb.SubmitScore
 		// TODO: make this an error instead.
 		req.BoardName = "2023-03-26"
 	}
+	var dbUserId sql.NullInt64
+	ctx, err := grpcWebAuth(ctx)
+	if err == nil {
+		userId, _, err := AuthUser(ctx)
+		if err == nil {
+			dbUserId = sql.NullInt64{Valid: true, Int64: userId}
+		}
+	}
+
 	var res pb.SubmitScoreResponse
 	if err := database.RunRWTransaction(ctx, pgx.RepeatableRead, func(q *gendb.Queries) error {
 		res.Reset()
 		return q.SetScore(ctx, gendb.SetScoreParams{
 			BoardName:   req.BoardName,
 			AnonymousID: int64(req.AnonymousId),
+			UserID:      dbUserId,
 			TeamSize:    req.TeamSize,
 			Words:       req.Words,
 			Seconds:     req.Seconds,
@@ -69,7 +80,7 @@ func (s *vierkantleService) GetScores(ctx context.Context, req *pb.GetScoresRequ
 		for i, score := range scores {
 			offset := int32(req.Index) + int32(i)
 			res.Scores[offset] = &pb.GetScoresResponse_Score{
-				Name:     "",
+				Name:     score.Username.String,
 				TeamSize: score.TeamSize,
 				Words:    score.Words,
 				Seconds:  score.Seconds,

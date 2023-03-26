@@ -7,6 +7,7 @@ package gendb
 
 import (
 	"context"
+	"database/sql"
 )
 
 const getMyScore = `-- name: GetMyScore :one
@@ -47,10 +48,11 @@ func (q *Queries) GetMyScore(ctx context.Context, arg GetMyScoreParams) (GetMySc
 }
 
 const getScores = `-- name: GetScores :many
-SELECT anonymous_id, team_size, words, seconds, COUNT(*) OVER() AS full_count
+SELECT anonymous_id, users.username, team_size, words, seconds, COUNT(*) OVER() AS full_count
 FROM vierkantle.scores
+LEFT JOIN vierkantle.users ON users.id=scores.user_id
 WHERE board_name=$1
-ORDER BY words DESC, seconds ASC, ctid ASC
+ORDER BY words DESC, seconds ASC, scores.ctid ASC
 LIMIT $2 OFFSET $3
 `
 
@@ -62,6 +64,7 @@ type GetScoresParams struct {
 
 type GetScoresRow struct {
 	AnonymousID int64
+	Username    sql.NullString
 	TeamSize    int32
 	Words       int32
 	Seconds     int32
@@ -79,6 +82,7 @@ func (q *Queries) GetScores(ctx context.Context, arg GetScoresParams) ([]GetScor
 		var i GetScoresRow
 		if err := rows.Scan(
 			&i.AnonymousID,
+			&i.Username,
 			&i.TeamSize,
 			&i.Words,
 			&i.Seconds,
@@ -94,15 +98,44 @@ func (q *Queries) GetScores(ctx context.Context, arg GetScoresParams) ([]GetScor
 	return items, nil
 }
 
+const loginUser = `-- name: LoginUser :one
+UPDATE vierkantle.users SET last_login_at=NOW() WHERE id=$1 RETURNING username
+`
+
+func (q *Queries) LoginUser(ctx context.Context, id int64) (string, error) {
+	row := q.db.QueryRow(ctx, loginUser, id)
+	var username string
+	err := row.Scan(&username)
+	return username, err
+}
+
+const registerUser = `-- name: RegisterUser :one
+INSERT INTO vierkantle.users (username, email, last_login_at)
+VALUES ($1, $2, NULL) RETURNING id
+`
+
+type RegisterUserParams struct {
+	Username string
+	Email    string
+}
+
+func (q *Queries) RegisterUser(ctx context.Context, arg RegisterUserParams) (int64, error) {
+	row := q.db.QueryRow(ctx, registerUser, arg.Username, arg.Email)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
 const setScore = `-- name: SetScore :exec
-INSERT INTO vierkantle.scores (board_name, anonymous_id, team_size, words, seconds, started_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-ON CONFLICT (board_name, anonymous_id) DO UPDATE SET team_size=$3, words=$4, seconds=$5, updated_at=NOW()
+INSERT INTO vierkantle.scores (board_name, anonymous_id, user_id, team_size, words, seconds, started_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+ON CONFLICT (board_name, anonymous_id) DO UPDATE SET user_id=$3, team_size=$4, words=$5, seconds=$6, updated_at=NOW()
 `
 
 type SetScoreParams struct {
 	BoardName   string
 	AnonymousID int64
+	UserID      sql.NullInt64
 	TeamSize    int32
 	Words       int32
 	Seconds     int32
@@ -112,6 +145,7 @@ func (q *Queries) SetScore(ctx context.Context, arg SetScoreParams) error {
 	_, err := q.db.Exec(ctx, setScore,
 		arg.BoardName,
 		arg.AnonymousID,
+		arg.UserID,
 		arg.TeamSize,
 		arg.Words,
 		arg.Seconds,

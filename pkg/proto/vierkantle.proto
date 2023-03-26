@@ -10,6 +10,11 @@ service VierkantleService {
   rpc SubmitScore(SubmitScoreRequest) returns (SubmitScoreResponse) {}
   rpc GetScores(GetScoresRequest) returns (GetScoresResponse) {}
 
+  rpc Whoami(WhoamiRequest) returns (WhoamiResponse) {}
+  rpc StartLogin(StartLoginRequest) returns (StartLoginResponse) {}
+  rpc FinishLogin(FinishLoginRequest) returns (FinishLoginResponse) {}
+  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+
   // Generator
   rpc WordsForBoard(WordsForBoardRequest) returns (WordsForBoardResponse) {}
   rpc SeedBoard(SeedBoardRequest) returns (stream SeedBoardResponse) {}
@@ -29,7 +34,7 @@ message GetBoardResponse {
 }
 
 message SubmitScoreRequest {
-  int32 anonymous_id = 1;
+  uint32 anonymous_id = 1;
   int32 team_size = 2;
   int32 words = 3;
   int32 seconds = 4;
@@ -56,6 +61,38 @@ message GetScoresResponse {
   map<int32, Score> scores = 1;
   int32 total_scores = 2;
   optional int32 your_score = 4;
+}
+
+message WhoamiRequest {
+}
+
+message WhoamiResponse {
+  string username = 1;
+}
+
+message StartLoginRequest {
+  // Either username or email must be filled in.
+  string username = 1;
+  string email = 2;
+}
+
+message StartLoginResponse {
+}
+
+message FinishLoginRequest {
+  string token = 1;
+}
+
+message FinishLoginResponse {
+  string username = 1;
+}
+
+message RegisterRequest {
+  string username = 1;
+  string email = 2;
+}
+
+message RegisterResponse {
 }
 
 message WordsForBoardRequest {

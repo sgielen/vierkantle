@@ -92,6 +92,18 @@
             </div>
           </q-card-section>
           <q-separator />
+          <q-card-section class="q-pa-md">
+            <template v-if="username">
+              Je bent ingelogd als <strong>{{ username }}</strong>.
+            </template>
+            <template v-else>
+              Je bent niet ingelogd, dus je score zal getoond worden als <em>Anoniem</em>.<br />
+              <q-btn @click="startLogin" dense color="primary">Inloggen</q-btn>
+              <span class="q-mx-sm">of</span>
+              <q-btn @click="startRegister" dense color="primary">je naam registreren?</q-btn>
+            </template>
+          </q-card-section>
+          <q-separator />
           <q-card-section>
             <VierkantleLeaderboard
               :backend="backendAddress"
@@ -99,6 +111,27 @@
               :boardName="boardName"
             />
           </q-card-section>
+        </q-card>
+      </q-dialog>
+
+      <q-dialog v-model="loginOpen">
+        <q-card style="width: 650px">
+          <q-card-section>
+            <p class="text-h6">Registreren</p>
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="q-pa-md">
+            Vul je gebruikersnaam in. Deze is te zien voor andere gebruikers op het scorebord:<br />
+            <q-input dense outlined v-model="registerUsername" /><br />
+            Vul je e-mailadres in. Deze gebruik je om weer toegang te krijgen tot je account op een ander
+            apparaat of wanneer je automatisch bent uitgelogd:<br />
+            <q-input dense outlined v-model="registerEmail" /><br />
+            <q-btn @click="register" color="primary">Registreren</q-btn>
+          </q-card-section>
+          <template v-if="error">
+            <q-separator />
+            <q-card-section class="q-pa-md"><strong>{{ error }}</strong></q-card-section>
+          </template>
         </q-card>
       </q-dialog>
 
@@ -163,6 +196,8 @@ const backendAddress = window.location.origin + "/api";
 const channel = createChannel(backendAddress);
 const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
 
+const username = ref<string>();
+
 onMounted(async () => {
   seconds.value ??= 0;
   setInterval(() => {
@@ -185,7 +220,20 @@ onMounted(async () => {
   } catch(e) {
     error.value = e as string;
   }
+
+  // Keep checking whether we're logged in (this also refreshes the cookie)
+  setInterval(sendWhoami, 60 * 1000);
+  await sendWhoami();
 });
+
+async function sendWhoami() {
+  try {
+    const whoami = await client.whoami({});
+    username.value = whoami.username;
+  } catch(e) {
+    username.value = undefined;
+  }
+}
 
 const wordListOpen = ref(false);
 
@@ -264,6 +312,40 @@ function word(who: string | null, word: string) {
 
   if (multiplayer.value && isOurs) {
     multiplayer.value.sendWord(word);
+  }
+}
+
+const loginOpen = ref(false);
+const registerUsername = ref<string>();
+const registerEmail = ref<string>();
+
+function startLogin() {
+  // TODO: implement login
+  startRegister();
+}
+
+function startRegister() {
+  leaderboardOpen.value = false;
+  loginOpen.value = true;
+  error.value = "";
+}
+
+async function register() {
+  try {
+    error.value = "";
+    await client.register({
+      username: registerUsername.value,
+      email: registerEmail.value,
+    })
+    await sendWhoami();
+    loginOpen.value = false;
+    leaderboardOpen.value = true;
+
+    // Also perform a single SubmitScore so that the user ID of the score is updated
+    // if there already was one
+    await updateScore();
+  } catch(e) {
+    error.value = e as string;
   }
 }
 

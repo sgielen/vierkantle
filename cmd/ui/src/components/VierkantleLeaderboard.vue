@@ -146,4 +146,8 @@ async function ensureItems({ from, to }: { from: number, to: number }): Promise<
 .ourScore {
   background-color: lightgreen;
 }
+
+.anonymous {
+  font-style: italic;
+}
 </style>
