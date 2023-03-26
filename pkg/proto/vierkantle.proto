@@ -25,6 +25,7 @@ message GetBoardRequest {
 
 message GetBoardResponse {
   bytes board = 1;
+  string name = 2;
 }
 
 message SubmitScoreRequest {

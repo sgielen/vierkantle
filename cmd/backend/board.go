@@ -26,11 +26,12 @@ func (s *vierkantleService) GetBoard(ctx context.Context, req *pb.GetBoardReques
 	if date.Hour() < 12 {
 		date = date.Add(-time.Hour * 13)
 	}
-	todaysBoard := date.Format("2006-01-02") + ".json"
-	bytes, err := os.ReadFile(filepath.Join(s.boardDir, todaysBoard))
+	todaysBoard := date.Format("2006-01-02")
+	bytes, err := os.ReadFile(filepath.Join(s.boardDir, todaysBoard+".json"))
 	if err == nil {
 		return &pb.GetBoardResponse{
 			Board: bytes,
+			Name:  todaysBoard,
 		}, nil
 	}
 
@@ -41,16 +42,18 @@ func (s *vierkantleService) GetBoard(ctx context.Context, req *pb.GetBoardReques
 
 	// ReadDir returns sorted files, so we simply return the last .json file
 	for i := len(files) - 1; i >= 0; i-- {
-		if !strings.HasSuffix(files[i].Name(), ".json") {
+		name := files[i].Name()
+		if !strings.HasSuffix(name, ".json") {
 			continue
 		}
-		bytes, err := os.ReadFile(filepath.Join(s.boardDir, files[i].Name()))
+		bytes, err := os.ReadFile(filepath.Join(s.boardDir, name))
 		if err != nil {
-			s.log.Printf("failed to read board %s, skipping: %v", files[i].Name(), err)
+			s.log.Printf("failed to read board %s, skipping: %v", name, err)
 			continue
 		}
 		return &pb.GetBoardResponse{
 			Board: bytes,
+			Name:  name[0 : len(name)-5],
 		}, nil
 	}
 

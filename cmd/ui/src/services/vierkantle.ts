@@ -11,6 +11,7 @@ export interface GetBoardRequest {
 
 export interface GetBoardResponse {
   board: Uint8Array;
+  name: string;
 }
 
 export interface SubmitScoreRequest {
@@ -183,13 +184,16 @@ export const GetBoardRequest = {
 };
 
 function createBaseGetBoardResponse(): GetBoardResponse {
-  return { board: new Uint8Array() };
+  return { board: new Uint8Array(), name: "" };
 }
 
 export const GetBoardResponse = {
   encode(message: GetBoardResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.board.length !== 0) {
       writer.uint32(10).bytes(message.board);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
     }
     return writer;
   },
@@ -204,6 +208,9 @@ export const GetBoardResponse = {
         case 1:
           message.board = reader.bytes();
           break;
+        case 2:
+          message.name = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -215,6 +222,7 @@ export const GetBoardResponse = {
   fromPartial(object: DeepPartial<GetBoardResponse>): GetBoardResponse {
     const message = createBaseGetBoardResponse();
     message.board = object.board ?? new Uint8Array();
+    message.name = object.name ?? "";
     return message;
   },
 };
