@@ -96,7 +96,7 @@ func (s *vierkantleService) Register(ctx context.Context, req *pb.RegisterReques
 	var res pb.RegisterResponse
 	var email sql.NullString
 	if req.Email != "" {
-		email = sql.NullString{Valid: true, String: req.Email}
+		email = sql.NullString{Valid: true, String: strings.ToLower(req.Email)}
 	}
 	if req.Username == "" {
 		return nil, fmt.Errorf("username is required")
