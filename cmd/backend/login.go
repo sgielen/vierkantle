@@ -98,6 +98,9 @@ func (s *vierkantleService) Register(ctx context.Context, req *pb.RegisterReques
 	if req.Email != "" {
 		email = sql.NullString{Valid: true, String: req.Email}
 	}
+	if req.Username == "" {
+		return nil, fmt.Errorf("username is required")
+	}
 	if err := database.RunRWTransaction(ctx, pgx.RepeatableRead, func(q *gendb.Queries) error {
 		res.Reset()
 		userId, err := q.RegisterUser(ctx, gendb.RegisterUserParams{
