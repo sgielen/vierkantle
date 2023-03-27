@@ -3,7 +3,7 @@ CREATE SCHEMA IF NOT EXISTS vierkantle;
 CREATE TABLE vierkantle.users (
 	id BIGSERIAL NOT NULL PRIMARY KEY,
 	username TEXT UNIQUE NOT NULL,
-	email TEXT UNIQUE NOT NULL,
+	email TEXT UNIQUE NULL,
 	last_login_at TIMESTAMPTZ NULL
 );
 

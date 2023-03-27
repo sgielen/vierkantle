@@ -89,6 +89,7 @@ message FinishLoginResponse {
 
 message RegisterRequest {
   string username = 1;
+  // Optional.
   string email = 2;
 }
 

@@ -121,12 +121,12 @@
           </q-card-section>
           <q-separator />
           <q-card-section class="q-pa-md">
-            Vul je gebruikersnaam in. Deze is te zien voor andere gebruikers op het scorebord:<br />
+            <span style="color: red">*</span> Vul je gebruikersnaam in. Deze is te zien voor andere gebruikers op het scorebord:<br />
             <q-input dense outlined v-model="registerUsername" /><br />
-            Vul je e-mailadres in. Deze gebruik je om weer toegang te krijgen tot je account op een ander
-            apparaat of wanneer je automatisch bent uitgelogd:<br />
+            Optioneel: vul je e-mailadres in. Deze gebruik je om weer toegang te krijgen tot je naam op een ander
+            apparaat of wanneer je automatisch bent uitgelogd.<br />
             <q-input dense outlined v-model="registerEmail" /><br />
-            <q-btn @click="register" color="primary">Registreren</q-btn>
+            <q-btn @click="register" :disabled="!registerUsername?.length" color="primary">Registreren</q-btn>
           </q-card-section>
           <template v-if="error">
             <q-separator />
@@ -173,6 +173,7 @@ import { createChannel, createClient } from 'nice-grpc-web';
 import { VierkantleServiceDefinition, VierkantleServiceClient, TeamStreamServerMessage } from '../services/vierkantle';
 import WordList from 'src/components/WordList.vue';
 import VierkantleLeaderboard from 'src/components/VierkantleLeaderboard.vue';
+import { errorToString } from 'src/services/errors';
 
 const board_ = useStorage<Board | undefined>("board", undefined, undefined, { serializer: StorageSerializers.object });
 const anonymousId = useStorage("anonymousId", Math.floor(Math.random() * 4294967295 /* UINT32_MAX */));
@@ -218,7 +219,7 @@ onMounted(async () => {
       seconds.value = 0;
     }
   } catch(e) {
-    error.value = e as string;
+    error.value = errorToString(e);
   }
 
   // Keep checking whether we're logged in (this also refreshes the cookie)
@@ -345,7 +346,7 @@ async function register() {
     // if there already was one
     await updateScore();
   } catch(e) {
-    error.value = e as string;
+    error.value = errorToString(e);
   }
 }
 
@@ -436,11 +437,7 @@ async function createTeam() {
       multiplayer.value = m;
       token.value = m.token;
     } catch(e) {
-      if (typeof e === "string") {
-        multiplayerError.value = e;
-      } else {
-        multiplayerError.value = JSON.stringify(e, null, 0);
-      }
+      multiplayerError.value = errorToString(e);
     }
   }
 }
@@ -453,11 +450,7 @@ async function joinTeam() {
       await m.connect();
       multiplayer.value = m;
     } catch(e) {
-      if (typeof e === "string") {
-        multiplayerError.value = e;
-      } else {
-        multiplayerError.value = JSON.stringify(e, null, 0);
-      }
+      multiplayerError.value = errorToString(e);
     }
   }
 }

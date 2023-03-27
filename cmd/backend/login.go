@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -93,17 +94,25 @@ func (s *vierkantleService) FinishLogin(ctx context.Context, req *pb.FinishLogin
 
 func (s *vierkantleService) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	var res pb.RegisterResponse
+	var email sql.NullString
+	if req.Email != "" {
+		email = sql.NullString{Valid: true, String: req.Email}
+	}
 	if err := database.RunRWTransaction(ctx, pgx.RepeatableRead, func(q *gendb.Queries) error {
 		res.Reset()
 		userId, err := q.RegisterUser(ctx, gendb.RegisterUserParams{
 			Username: req.Username,
-			Email:    req.Email,
+			Email:    email,
 		})
 		if err != nil {
-			return err
+			if database.ToSQLState(err) == "23505" /* Duplicate key value */ {
+				return fmt.Errorf("that username or e-mail address is already in use")
+			} else {
+				return err
+			}
 		}
 
-		// TODO: should generate a JWT here, and *e-mail* it to this user
+		// TODO: if we have an e-mail address, should generate a JWT here, and *e-mail* it to this user
 		// then, they can use FinishLogin
 		// for now, just immediately log them in here
 		if _, err := q.LoginUser(ctx, userId); err != nil {

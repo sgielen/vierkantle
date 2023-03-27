@@ -116,7 +116,7 @@ VALUES ($1, $2, NULL) RETURNING id
 
 type RegisterUserParams struct {
 	Username string
-	Email    string
+	Email    sql.NullString
 }
 
 func (q *Queries) RegisterUser(ctx context.Context, arg RegisterUserParams) (int64, error) {

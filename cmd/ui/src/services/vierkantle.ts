@@ -76,6 +76,7 @@ export interface FinishLoginResponse {
 
 export interface RegisterRequest {
   username: string;
+  /** Optional. */
   email: string;
 }
 

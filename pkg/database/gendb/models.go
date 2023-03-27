@@ -23,6 +23,6 @@ type VierkantleScore struct {
 type VierkantleUser struct {
 	ID          int64
 	Username    string
-	Email       string
+	Email       sql.NullString
 	LastLoginAt sql.NullTime
 }
