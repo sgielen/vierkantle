@@ -110,8 +110,8 @@ func (q *Queries) LoginUser(ctx context.Context, id int64) (string, error) {
 }
 
 const registerUser = `-- name: RegisterUser :one
-INSERT INTO vierkantle.users (username, email, last_login_at)
-VALUES ($1, $2, NULL) RETURNING id
+INSERT INTO vierkantle.users (username, email, registered_at, last_login_at)
+VALUES ($1, $2, NOW(), NULL) RETURNING id
 `
 
 type RegisterUserParams struct {

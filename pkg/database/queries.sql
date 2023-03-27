@@ -24,8 +24,8 @@ FROM vierkantle.scores my_score
 WHERE my_score.board_name=$1 AND my_score.anonymous_id=$2;
 
 -- name: RegisterUser :one
-INSERT INTO vierkantle.users (username, email, last_login_at)
-VALUES ($1, $2, NULL) RETURNING id;
+INSERT INTO vierkantle.users (username, email, registered_at, last_login_at)
+VALUES ($1, $2, NOW(), NULL) RETURNING id;
 
 -- name: LoginUser :one
 UPDATE vierkantle.users SET last_login_at=NOW() WHERE id=$1 RETURNING username;
