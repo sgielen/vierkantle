@@ -126,7 +126,7 @@
             Optioneel: vul je e-mailadres in. Deze gebruik je om weer toegang te krijgen tot je naam op een ander
             apparaat of wanneer je automatisch bent uitgelogd.<br />
             <q-input dense outlined v-model="registerEmail" /><br />
-            <q-btn @click="register" :disabled="!registerUsername?.length" color="primary">Registreren</q-btn>
+            <q-btn @click="register" :disabled="!registerUsername.trim().length" color="primary">Registreren</q-btn>
           </q-card-section>
           <template v-if="error">
             <q-separator />
@@ -317,8 +317,8 @@ function word(who: string | null, word: string) {
 }
 
 const loginOpen = ref(false);
-const registerUsername = ref<string>();
-const registerEmail = ref<string>();
+const registerUsername = ref<string>("");
+const registerEmail = ref<string>("");
 
 function startLogin() {
   // TODO: implement login
@@ -335,8 +335,8 @@ async function register() {
   try {
     error.value = "";
     await client.register({
-      username: registerUsername.value,
-      email: registerEmail.value,
+      username: registerUsername.value.trim(),
+      email: registerEmail.value.trim(),
     })
     await sendWhoami();
     loginOpen.value = false;
