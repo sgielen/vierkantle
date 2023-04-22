@@ -52,7 +52,7 @@ watchEffect(() => {
   ctx.fillStyle = 'rgb(255, 0, 0)';
   ctx.strokeStyle = 'rgb(255, 0, 0)';
   ctx.lineWidth = 10;
-  ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
+  ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value - 1);
   if (props.path.length == 0) {
     return;
   }
