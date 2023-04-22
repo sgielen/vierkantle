@@ -35,7 +35,7 @@
   </q-header>
 
   <q-page-container>
-    <q-page>
+    <q-page class="game-page">
       <q-dialog v-model="multiplayerOpen">
         <q-card style="width: 650px">
           <q-card-section>
@@ -135,7 +135,7 @@
         </q-card>
       </q-dialog>
 
-      <div class="game-page row items-center q-ma-xl">
+      <div class="row items-between q-mt-md q-mx-xl">
         <div class="wordlist" v-show="wordListOpen">
           <WordList v-if="board" :words="board.words" />
         </div>
@@ -504,13 +504,13 @@ async function updateScore() {
 
 @media screen and (min-width: 500px) {
   .game-page {
-    margin: 12px 48px;
+    padding: 12px;
   }
 
   .wordlist {
     width: 25%;
     height: auto;
-    max-height: calc(100vh - 80px);
+    max-height: calc(100svh - 128px);
     display: block !important;
     visibility: visible !important;
   }
@@ -536,7 +536,7 @@ async function updateScore() {
     top: 60px;
     left: 20px;
     width: calc(100vw - 40px);
-    height: calc(100vh - 80px);
+    height: calc(100svh - 80px);
     overflow: scroll;
     overscroll-behavior: contain;
   }
