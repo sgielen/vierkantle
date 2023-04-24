@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Jille/trxwrap"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/jackc/pgx/v4"
 	"github.com/sgielen/vierkantle/pkg/database"
@@ -108,7 +109,7 @@ func (s *vierkantleService) Register(ctx context.Context, req *pb.RegisterReques
 			Email:    email,
 		})
 		if err != nil {
-			if database.ToSQLState(err) == "23505" /* Duplicate key value */ {
+			if trxwrap.ToSQLState(err) == "23505" /* Duplicate key value */ {
 				return fmt.Errorf("that username or e-mail address is already in use")
 			} else {
 				return err
