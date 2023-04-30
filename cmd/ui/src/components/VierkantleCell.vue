@@ -1,5 +1,10 @@
 <template>
-  <div class="cell" :class="{'unused': props.state.used == 0, 'empty': props.letter == '', 'generator': props.generatorMode}" @dblclick="doubleClicked">
+  <div
+    class="cell"
+    :class="{'unused': props.state.used == 0, 'empty': props.letter == '', 'generator': props.generatorMode}"
+    @dblclick="doubleClicked"
+    v-touch-hold="doubleClicked"
+  >
     <span v-if="!editing" class="letter">
       {{ props.letter }}
     </span>

@@ -6,6 +6,7 @@
     @touchstart="touchEvent('start', $event)"
     @touchmove="touchEvent('move', $event)"
     @touchend="dragEnd"
+    v-touch-hold="() => { if(generatorMode) { dragEnd(); /* on touch-hold, allow cell to display its input field */ } }"
   >
     <div class="board">
       <template v-for="row, y in props.board.cells">
