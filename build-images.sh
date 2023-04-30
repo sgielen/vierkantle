@@ -3,13 +3,16 @@
 set -e
 
 PUSH=0
+DEPLOY=0
 if [ "$1" = "--push" ]; then
 	PUSH=1
+elif [ "$1" = "--deploy" ]; then
+	PUSH=1
+	DEPLOY=1
 elif [ "$1" != "" ]; then
-	echo "Usage: $0 [ --push ]"
+	echo "Usage: $0 [ --push | --deploy ]"
 	exit 1
 fi
-
 
 IMAGE_BASENAME="rg.nl-ams.scw.cloud/sc-ams-registry/vierkantle/"
 
@@ -37,3 +40,8 @@ for gobinary in backend; do
 		docker push "${IMAGE_BASENAME}${gobinary}:latest-${GIT_REF_NAME}"
 	fi
 done
+
+if [ "$DEPLOY" = "1" ]; then
+	kubectl rollout restart deployment -n vierkantle ui
+	kubectl rollout restart deployment -n vierkantle backend
+fi
