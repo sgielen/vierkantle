@@ -96,6 +96,10 @@ func (s *vierkantleService) WordsForBoard(ctx context.Context, req *pb.WordsForB
 }
 
 func (s *vierkantleService) SeedBoard(req *pb.SeedBoardRequest, stream pb.VierkantleService_SeedBoardServer) error {
+	if req.Width*req.Height > 36 {
+		return fmt.Errorf("refusing to SeedBoard for a board with >36 cells")
+	}
+
 	dict, err := s.getDictionary()
 	if err != nil {
 		return err
@@ -179,6 +183,10 @@ func (s *vierkantleService) FillInBoard(req *pb.FillInBoardRequest, stream pb.Vi
 		board, _, err := vierkantle.BoardFromJson(req.Board)
 		if err != nil {
 			return err
+		}
+
+		if board.Width*board.Height > 36 {
+			return fmt.Errorf("refusing to FillInBoard for a board with >36 cells")
 		}
 
 		words, ok := board.FillFullyUsed(dict)

@@ -46,7 +46,7 @@
         <div class="game-wrap items-center justify-evenly">
           <LabelAutofit size="48" :value="numWords" />
           <LabelAutofit size="24" :value="usage" />
-          <LabelAutofit size="24" v-if="error" :value="error" />
+          <LabelAutofit size="24" class="error" v-if="error" :value="error" />
           <div class="row items-center justify-evenly relative-position">
             <div class="game">
               <VierkantleBoard
@@ -76,6 +76,7 @@ import WordList from 'src/components/WordList.vue';
 import LabelAutofit from 'src/components/LabelAutofit.vue';
 import { QInput } from 'quasar';
 import { isAbortError, useUniqueCall } from 'src/services/abort';
+import { errorToString } from 'src/services/errors';
 
 function defaultBoard(): Board {
   const b: Board = {
@@ -156,7 +157,7 @@ async function seed() {
       return;
     }
 
-    error.value = e as string;
+    error.value = errorToString(e);
   }
   loading.value = false;
 }
@@ -185,7 +186,7 @@ async function fillIn() {
       return;
     }
 
-    error.value = e as string;
+    error.value = errorToString(e);
   }
   loading.value = false;
 }
@@ -205,7 +206,7 @@ async function renewWords() {
       return;
     }
 
-    error.value = e as string;
+    error.value = errorToString(e);
   }
   loading.value = false;
 }
@@ -261,7 +262,7 @@ const file = computed<any>({
       error.value = "";
       board.value = JSON.parse(json);
     } catch(e) {
-      error.value = e as string;
+      error.value = errorToString(e);
     }
   },
 });
@@ -284,6 +285,10 @@ const file = computed<any>({
   border: 1px solid black;
   overflow: scroll;
   padding: 4px;
+}
+
+.error {
+  color: red;
 }
 
 @media screen and (min-width: 500px) {
