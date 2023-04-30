@@ -47,7 +47,7 @@
           <LabelAutofit size="48" :value="numWords" />
           <LabelAutofit size="24" :value="usage" />
           <LabelAutofit size="24" v-if="error" :value="error" />
-          <div class="row items-center justify-evenly">
+          <div class="row items-center justify-evenly relative-position">
             <div class="game">
               <VierkantleBoard
                 :board="board"
@@ -55,6 +55,9 @@
                 :generatorMode="true"
               />
             </div>
+            <q-inner-loading :showing="loading">
+              <q-spinner-gears size="250px" color="primary" />
+            </q-inner-loading>
           </div>
         </div>
       </div>
