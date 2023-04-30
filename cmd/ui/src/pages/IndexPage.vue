@@ -48,11 +48,11 @@
           <template v-if="!multiplayer">
             <q-card-section>
               Vul je spelernaam in, en join of maak een team:
-              <q-input dense outlined label="Je naam" v-model="playerName" @update:model-value="changePlayerName" />
+              <q-input dense outlined label="Je naam" v-model="multiplayerName" @update:model-value="changeMultiplayerName" />
             </q-card-section>
             <q-separator />
             <q-card-section>
-              <q-input dense outlined v-model="token" label="Code" />
+              <q-input dense outlined v-model="multiplayerToken" label="Code" />
               <q-btn @click="joinTeam" label="Join een team" color="primary" />
             </q-card-section>
             <q-card-section>
@@ -165,7 +165,7 @@
 <script setup lang="ts">
 import VierkantleBoard from 'components/VierkantleBoard.vue';
 import { Board } from 'src/components/models';
-import { computed, onMounted, ref, reactive } from 'vue';
+import { computed, onMounted, ref, reactive, watchEffect } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { Multiplayer } from 'src/services/multiplayer';
 import VierkantleTop from 'src/components/VierkantleTop.vue';
@@ -350,8 +350,14 @@ async function register() {
   }
 }
 
-const playerName = useStorage("name", "");
-const token = useStorage("token", "");
+const multiplayerName = useStorage("name", "");
+watchEffect(() => {
+  if (username.value) {
+    multiplayerName.value = username.value;
+    changeMultiplayerName();
+  }
+});
+const multiplayerToken = useStorage("multiplayerToken", "");
 const multiplayer = ref<Multiplayer>()
 const multiplayerError = ref<string>();
 
@@ -364,7 +370,7 @@ function onMessage(message: TeamStreamServerMessage): void {
 }
 
 const multiplayerUrl = computed(() => {
-  return window.location.origin + "/#" + multiplayer.value?.token;
+  return window.location.origin + "/#m=" + multiplayer.value?.token;
 })
 
 const copyText = ref("klik om te kopiëren");
@@ -377,31 +383,31 @@ async function setClipboard(v: string) {
 }
 
 function newMultiplayer(token?: string): Multiplayer {
-  return reactive(new Multiplayer(backendAddress, playerName.value, onMessage, token)) as Multiplayer;
+  return reactive(new Multiplayer(backendAddress, multiplayerName.value, onMessage, token)) as Multiplayer;
 }
 
 onMounted(async () => {
-  if (window.location.hash.length > 2) {
-    token.value = window.location.hash.substring(1);
+  if (window.location.hash.startsWith("#m=")) {
+    multiplayerToken.value = window.location.hash.substring(3);
     window.location.hash = "";
   }
-  if (token.value && !playerName.value) {
+  if (multiplayerToken.value && !multiplayerName.value) {
     // They have a token, but not a player name, so let's get that first
     setTimeout(() => {
       multiplayerOpen.value = true;
     }, 100);
     return;
   }
-  if (playerName.value && token.value) {
+  if (multiplayerName.value && multiplayerToken.value) {
     // Try to optionally connect to the same multiplayer team. If it does not
     // succeed, it's probably an old team, just forget the token.
-    const m = newMultiplayer(token.value);
+    const m = newMultiplayer(multiplayerToken.value);
     try {
       await m.connect();
       multiplayer.value = m as Multiplayer;
     } catch(e) {
       if (typeof e == "string" && e.includes("team not found")) {
-        token.value = "";
+        multiplayerToken.value = "";
       }
     }
   }
@@ -422,20 +428,20 @@ const otherPlayers = computed(() => {
   }
 });
 
-async function changePlayerName() {
-  if (multiplayer.value && playerName.value != multiplayer.value.name) {
-    await multiplayer.value.changePlayerName(playerName.value);
+async function changeMultiplayerName() {
+  if (multiplayer.value && multiplayerName.value != multiplayer.value.name) {
+    await multiplayer.value.changePlayerName(multiplayerName.value);
   }
 }
 
 async function createTeam() {
   multiplayerError.value = undefined;
-  if (playerName.value && !multiplayer.value) {
+  if (multiplayerName.value && !multiplayer.value) {
     const m = newMultiplayer();
     try {
       await m.connect();
       multiplayer.value = m;
-      token.value = m.token;
+      multiplayerToken.value = m.token;
     } catch(e) {
       multiplayerError.value = errorToString(e);
     }
@@ -444,8 +450,8 @@ async function createTeam() {
 
 async function joinTeam() {
   multiplayerError.value = undefined;
-  if (token.value && playerName.value) {
-    const m = newMultiplayer(token.value);
+  if (multiplayerToken.value && multiplayerName.value) {
+    const m = newMultiplayer(multiplayerToken.value);
     try {
       await m.connect();
       multiplayer.value = m;
