@@ -119,7 +119,7 @@ const seedword = ref("");
 
 const boardFilename = computed(() => {
   if (seedword.value) {
-    return seedword.value + ".json";
+    return seedword.value.trim().toLowerCase() + ".json";
   }
   return new Date().toISOString().slice(0, 10) + ".json";
 })
