@@ -75,6 +75,7 @@ import { VierkantleServiceDefinition, VierkantleServiceClient } from '../service
 import WordList from 'src/components/WordList.vue';
 import LabelAutofit from 'src/components/LabelAutofit.vue';
 import { QInput } from 'quasar';
+import { isAbortError, useUniqueCall } from 'src/services/abort';
 
 function defaultBoard(): Board {
   const b: Board = {
@@ -114,6 +115,8 @@ const loading = ref(false);
 const loadingProgress = ref(0);
 const backendAddress = window.location.origin + "/api";
 
+const { newUniqueCall } = useUniqueCall();
+
 function reset() {
   board.value = defaultBoard();
 }
@@ -139,7 +142,7 @@ async function seed() {
       width: width.value,
       height: height.value,
       attempts: 10000,
-    });
+    }, { signal: newUniqueCall() });
     for await (const response of responses) {
       if (response.board) {
         board.value = JSON.parse(new TextDecoder().decode(response.board));
@@ -149,6 +152,10 @@ async function seed() {
       }
     }
   } catch(e) {
+    if (isAbortError(e)) {
+      return;
+    }
+
     error.value = e as string;
   }
   loading.value = false;
@@ -164,7 +171,7 @@ async function fillIn() {
     const responses = client.fillInBoard({
       board: new TextEncoder().encode(JSON.stringify(board.value, null, 0)),
       attempts: 10000,
-    });
+    }, { signal: newUniqueCall() });
     for await (const response of responses) {
       if (response.board) {
         board.value = JSON.parse(new TextDecoder().decode(response.board));
@@ -174,6 +181,10 @@ async function fillIn() {
       }
     }
   } catch(e) {
+    if (isAbortError(e)) {
+      return;
+    }
+
     error.value = e as string;
   }
   loading.value = false;
@@ -187,9 +198,13 @@ async function renewWords() {
     const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
     const boardResponse = await client.wordsForBoard({
       board: new TextEncoder().encode(JSON.stringify(board.value, null, 0)),
-    });
+    }, { signal: newUniqueCall() });
     board.value = JSON.parse(new TextDecoder().decode(boardResponse.board));
   } catch(e) {
+    if (isAbortError(e)) {
+      return;
+    }
+
     error.value = e as string;
   }
   loading.value = false;
