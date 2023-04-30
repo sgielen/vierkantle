@@ -9,9 +9,9 @@ type Board struct {
 }
 
 func NewBoard(width, height int) *Board {
-	cells := make([][]rune, width)
-	for x := range cells {
-		cells[x] = make([]rune, height)
+	cells := make([][]rune, height)
+	for y := range cells {
+		cells[y] = make([]rune, width)
 	}
 	board := &Board{
 		Width:  width,
