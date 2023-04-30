@@ -268,12 +268,19 @@ onMounted(async () => {
   await sendWhoami();
 });
 
-async function sendWhoami() {
+async function sendWhoami(critical?: boolean) {
   try {
     const whoami = await client.whoami({});
     username.value = whoami.username;
   } catch(e) {
-    username.value = undefined;
+    if (critical) {
+      username.value = undefined;
+    } else {
+      // This may be a temporary error, or a race condition with the
+      // finishLogin() RPC. Try whoami RPC again, but with critical=true, before
+      // setting username.value = undefined.
+      setTimeout(() => sendWhoami(true), 500);
+    }
   }
 }
 
