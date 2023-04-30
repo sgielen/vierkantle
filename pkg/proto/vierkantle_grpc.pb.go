@@ -25,6 +25,7 @@ type VierkantleServiceClient interface {
 	StartLogin(ctx context.Context, in *StartLoginRequest, opts ...grpc.CallOption) (*StartLoginResponse, error)
 	FinishLogin(ctx context.Context, in *FinishLoginRequest, opts ...grpc.CallOption) (*FinishLoginResponse, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
 	// Generator
 	WordsForBoard(ctx context.Context, in *WordsForBoardRequest, opts ...grpc.CallOption) (*WordsForBoardResponse, error)
 	SeedBoard(ctx context.Context, in *SeedBoardRequest, opts ...grpc.CallOption) (VierkantleService_SeedBoardClient, error)
@@ -97,6 +98,15 @@ func (c *vierkantleServiceClient) FinishLogin(ctx context.Context, in *FinishLog
 func (c *vierkantleServiceClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
 	out := new(RegisterResponse)
 	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/Register", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vierkantleServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error) {
+	out := new(LogoutResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/Logout", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -218,6 +228,7 @@ type VierkantleServiceServer interface {
 	StartLogin(context.Context, *StartLoginRequest) (*StartLoginResponse, error)
 	FinishLogin(context.Context, *FinishLoginRequest) (*FinishLoginResponse, error)
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	// Generator
 	WordsForBoard(context.Context, *WordsForBoardRequest) (*WordsForBoardResponse, error)
 	SeedBoard(*SeedBoardRequest, VierkantleService_SeedBoardServer) error
@@ -249,6 +260,9 @@ func (UnimplementedVierkantleServiceServer) FinishLogin(context.Context, *Finish
 }
 func (UnimplementedVierkantleServiceServer) Register(context.Context, *RegisterRequest) (*RegisterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
+}
+func (UnimplementedVierkantleServiceServer) Logout(context.Context, *LogoutRequest) (*LogoutResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
 }
 func (UnimplementedVierkantleServiceServer) WordsForBoard(context.Context, *WordsForBoardRequest) (*WordsForBoardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WordsForBoard not implemented")
@@ -400,6 +414,24 @@ func _VierkantleService_Register_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VierkantleService_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LogoutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).Logout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/Logout",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).Logout(ctx, req.(*LogoutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _VierkantleService_WordsForBoard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(WordsForBoardRequest)
 	if err := dec(in); err != nil {
@@ -520,6 +552,10 @@ var VierkantleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Register",
 			Handler:    _VierkantleService_Register_Handler,
+		},
+		{
+			MethodName: "Logout",
+			Handler:    _VierkantleService_Logout_Handler,
 		},
 		{
 			MethodName: "WordsForBoard",

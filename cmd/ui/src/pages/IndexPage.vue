@@ -94,7 +94,8 @@
           <q-separator />
           <q-card-section class="q-pa-md">
             <template v-if="username">
-              Je bent ingelogd als <strong>{{ username }}</strong>.
+              Je bent ingelogd als <strong>{{ username }}</strong>.<br />
+              <q-btn @click="logout" dense>Uitloggen</q-btn>
             </template>
             <template v-else>
               Je bent niet ingelogd, dus je score zal getoond worden als <em>Anoniem</em>.<br />
@@ -452,6 +453,16 @@ async function register() {
     // Also perform a single SubmitScore so that the user ID of the score is updated
     // if there already was one
     await updateScore();
+  } catch(e) {
+    error.value = errorToString(e);
+  }
+}
+
+async function logout() {
+  try {
+    error.value = "";
+    await client.logout({});
+    username.value = undefined;
   } catch(e) {
     error.value = errorToString(e);
   }

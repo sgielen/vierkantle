@@ -179,6 +179,10 @@ func (s *vierkantleService) Register(ctx context.Context, req *pb.RegisterReques
 	return &res, nil
 }
 
+func (s *vierkantleService) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+	return &pb.LogoutResponse{}, DeleteCookie(ctx)
+}
+
 func jwtFromContext(ctx context.Context) string {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {

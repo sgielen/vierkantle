@@ -85,6 +85,12 @@ export interface RegisterRequest {
 export interface RegisterResponse {
 }
 
+export interface LogoutRequest {
+}
+
+export interface LogoutResponse {
+}
+
 export interface WordsForBoardRequest {
   board: Uint8Array;
 }
@@ -886,6 +892,66 @@ export const RegisterResponse = {
   },
 };
 
+function createBaseLogoutRequest(): LogoutRequest {
+  return {};
+}
+
+export const LogoutRequest = {
+  encode(_: LogoutRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): LogoutRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLogoutRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(_: DeepPartial<LogoutRequest>): LogoutRequest {
+    const message = createBaseLogoutRequest();
+    return message;
+  },
+};
+
+function createBaseLogoutResponse(): LogoutResponse {
+  return {};
+}
+
+export const LogoutResponse = {
+  encode(_: LogoutResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): LogoutResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLogoutResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(_: DeepPartial<LogoutResponse>): LogoutResponse {
+    const message = createBaseLogoutResponse();
+    return message;
+  },
+};
+
 function createBaseWordsForBoardRequest(): WordsForBoardRequest {
   return { board: new Uint8Array() };
 }
@@ -1635,6 +1701,14 @@ export const VierkantleServiceDefinition = {
       responseStream: false,
       options: {},
     },
+    logout: {
+      name: "Logout",
+      requestType: LogoutRequest,
+      requestStream: false,
+      responseType: LogoutResponse,
+      responseStream: false,
+      options: {},
+    },
     /** Generator */
     wordsForBoard: {
       name: "WordsForBoard",
@@ -1688,6 +1762,7 @@ export interface VierkantleServiceImplementation<CallContextExt = {}> {
     context: CallContext & CallContextExt,
   ): Promise<DeepPartial<FinishLoginResponse>>;
   register(request: RegisterRequest, context: CallContext & CallContextExt): Promise<DeepPartial<RegisterResponse>>;
+  logout(request: LogoutRequest, context: CallContext & CallContextExt): Promise<DeepPartial<LogoutResponse>>;
   /** Generator */
   wordsForBoard(
     request: WordsForBoardRequest,
@@ -1724,6 +1799,7 @@ export interface VierkantleServiceClient<CallOptionsExt = {}> {
     options?: CallOptions & CallOptionsExt,
   ): Promise<FinishLoginResponse>;
   register(request: DeepPartial<RegisterRequest>, options?: CallOptions & CallOptionsExt): Promise<RegisterResponse>;
+  logout(request: DeepPartial<LogoutRequest>, options?: CallOptions & CallOptionsExt): Promise<LogoutResponse>;
   /** Generator */
   wordsForBoard(
     request: DeepPartial<WordsForBoardRequest>,
