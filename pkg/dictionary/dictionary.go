@@ -1,5 +1,7 @@
 package dictionary
 
+import "strings"
+
 // Word lists are read assuming that all words are the same WordType.
 // A word is registered in the Dictionary with the highest WordType
 // value, i.e. if a word exists only in a Bonus list it is Bonus
@@ -58,6 +60,7 @@ func (dictionary *prefixDictionary) ReadFromFile(file string, wordTypes WordType
 }
 
 func (dictionary *prefixDictionary) AddWord(word WordReadResult, wordType WordType, upgradeOnly bool) {
+	word.Word = NormalizeWord(word.Word)
 	for i := 1; i < len(word.Word); i++ {
 		prefix := word.Word[0:i]
 		if v, ok := dictionary.Prefixes[prefix]; ok {
@@ -102,4 +105,10 @@ func (p *prefixDictionary) HasWord(prefix string) *HasWordsWithPrefixResult {
 	} else {
 		return &HasWordsWithPrefixResult{}
 	}
+}
+
+func NormalizeWord(word string) string {
+	word = strings.ToLower(word)
+	word = strings.TrimSpace(word)
+	return word
 }
