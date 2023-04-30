@@ -29,3 +29,6 @@ VALUES ($1, $2, NOW(), NULL) RETURNING id;
 
 -- name: LoginUser :one
 UPDATE vierkantle.users SET last_login_at=NOW() WHERE id=$1 RETURNING username;
+
+-- name: GetUsersWithEmailOrName :many
+SELECT id, username, email FROM vierkantle.users WHERE username=$1 OR email=$2;

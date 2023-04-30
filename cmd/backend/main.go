@@ -12,6 +12,7 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/sgielen/vierkantle/pkg/database"
+	"github.com/sgielen/vierkantle/pkg/email"
 	pb "github.com/sgielen/vierkantle/pkg/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
@@ -53,6 +54,10 @@ func main() {
 
 	if b, err := os.Stat(*boards); err != nil || !b.IsDir() {
 		log.Printf("Warning: failed to stat boards directory %s, won't offer boards to clients", *boards)
+	}
+
+	if email.GetSendgridApiKey() == "" {
+		log.Printf("Warning: no Sendgrid API key found, will be unable to send e-mail")
 	}
 
 	// Set up a gRPC server with interceptors for e.g. authentication and panic prevention

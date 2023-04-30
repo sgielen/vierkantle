@@ -98,6 +98,41 @@ func (q *Queries) GetScores(ctx context.Context, arg GetScoresParams) ([]GetScor
 	return items, nil
 }
 
+const getUsersWithEmailOrName = `-- name: GetUsersWithEmailOrName :many
+SELECT id, username, email FROM vierkantle.users WHERE username=$1 OR email=$2
+`
+
+type GetUsersWithEmailOrNameParams struct {
+	Username string
+	Email    sql.NullString
+}
+
+type GetUsersWithEmailOrNameRow struct {
+	ID       int64
+	Username string
+	Email    sql.NullString
+}
+
+func (q *Queries) GetUsersWithEmailOrName(ctx context.Context, arg GetUsersWithEmailOrNameParams) ([]GetUsersWithEmailOrNameRow, error) {
+	rows, err := q.db.Query(ctx, getUsersWithEmailOrName, arg.Username, arg.Email)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUsersWithEmailOrNameRow
+	for rows.Next() {
+		var i GetUsersWithEmailOrNameRow
+		if err := rows.Scan(&i.ID, &i.Username, &i.Email); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const loginUser = `-- name: LoginUser :one
 UPDATE vierkantle.users SET last_login_at=NOW() WHERE id=$1 RETURNING username
 `

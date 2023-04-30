@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/sgielen/vierkantle/pkg/database"
 	"github.com/sgielen/vierkantle/pkg/database/gendb"
+	"github.com/sgielen/vierkantle/pkg/email"
 	pb "github.com/sgielen/vierkantle/pkg/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -31,8 +32,8 @@ var vktJwtKey = contextKey("jwt")
 // TODO: make these flags or read from env
 var jwtKeyId = "1"
 var jwtSecret = []byte("746c2cbb43675102284ee4218e1492391ed222ab3743aba2f5002ea8d3c003f2")
-var jwtExpiry = 10 * 365 * 24 * 3600 * time.Second /* 10 years */
-var cookieMaxAge = 10 * 365 * 24 * 3600            /* 10 years */
+var jwtExpiry = 4 * 7 * 24 * 3600 * time.Second /* 4 weeks */
+var cookieMaxAge = 4 * 7 * 24 * 3600            /* 4 weeks */
 var cookieSecure = false
 var cookiePath = "/api"
 var cookieSameSite = "Strict"
@@ -60,13 +61,59 @@ func (s *vierkantleService) Whoami(ctx context.Context, req *pb.WhoamiRequest) (
 }
 
 func (s *vierkantleService) StartLogin(ctx context.Context, req *pb.StartLoginRequest) (*pb.StartLoginResponse, error) {
-	// TODO: check if user or e-mail exists in the database
-	// if so, take e-mail of that user
-	// generate a valid JWT for this user, but do *not* set it as a cookie
-	// send the JWT to the user via e-mail
-	// implement a feature in the frontend such that it receives the JWT via the URL
-	// then sends FinishLogin so that the user is logged in
-	return nil, fmt.Errorf("unimplemented")
+	var res pb.StartLoginResponse
+	if err := database.RunROTransaction(ctx, pgx.RepeatableRead, func(q *gendb.Queries) error {
+		res.Reset()
+
+		users, err := q.GetUsersWithEmailOrName(ctx, gendb.GetUsersWithEmailOrNameParams{
+			Username: req.Username,
+			Email:    sql.NullString{Valid: true, String: req.Email},
+		})
+		if err != nil && err != pgx.ErrNoRows {
+			return err
+		}
+
+		var user gendb.GetUsersWithEmailOrNameRow
+
+		// Find the user with that e-mail address; otherwise, the user with that name
+		for _, u := range users {
+			if len(u.Email.String) == 0 {
+				continue
+			}
+			if u.Email.String == req.Email {
+				user = u
+				break
+			}
+			if u.Username == req.Username && u.Email.Valid && user.ID == 0 {
+				user = u
+			}
+		}
+
+		if user.ID == 0 {
+			res.Found = false
+			return nil
+		}
+
+		tokenString, err := GetNewJwt(user.ID, user.Username)
+		if err != nil {
+			return err
+		}
+
+		url := req.UrlPrefix + tokenString
+		log.Printf("Login URL for %s will be %q", user.Username, url)
+
+		err = email.SendLoginUrl(ctx, user.Email.String, url)
+		if err != nil {
+			log.Printf("Sending e-mail failed because of %+v", err)
+			//lint:ignore ST1005 :Error is presented to the user directly
+			return fmt.Errorf("Sorry, het sturen van de e-mail is mislukt. Probeer later opnieuw in te loggen.")
+		}
+		res.Found = true
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (s *vierkantleService) FinishLogin(ctx context.Context, req *pb.FinishLoginRequest) (*pb.FinishLoginResponse, error) {
@@ -235,7 +282,7 @@ func AuthUser(ctx context.Context) (int64, string, error) {
 	}
 }
 
-func SetCookie(ctx context.Context, userid int64, username string) error {
+func GetNewJwt(userid int64, username string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userid":   userid,
 		"username": username,
@@ -244,11 +291,14 @@ func SetCookie(ctx context.Context, userid int64, username string) error {
 	})
 	token.Header["kid"] = jwtKeyId
 
-	tokenString, err := token.SignedString(jwtSecret)
+	return token.SignedString(jwtSecret)
+}
+
+func SetCookie(ctx context.Context, userid int64, username string) error {
+	tokenString, err := GetNewJwt(userid, username)
 	if err != nil {
 		return err
 	}
-
 	cookie := generateCookie(tokenString)
 	header := metadata.Pairs("set-cookie", cookie)
 

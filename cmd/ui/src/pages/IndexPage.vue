@@ -114,7 +114,7 @@
         </q-card>
       </q-dialog>
 
-      <q-dialog v-model="loginOpen">
+      <q-dialog v-model="registerOpen">
         <q-card style="width: 650px">
           <q-card-section>
             <p class="text-h6">Registreren</p>
@@ -128,6 +128,46 @@
             <q-input dense outlined v-model="registerEmail" /><br />
             <q-btn @click="register" :disabled="!registerUsername.trim().length" color="primary">Registreren</q-btn>
           </q-card-section>
+          <template v-if="error">
+            <q-separator />
+            <q-card-section class="q-pa-md"><strong>{{ error }}</strong></q-card-section>
+          </template>
+        </q-card>
+      </q-dialog>
+
+      <q-dialog v-model="loginOpen">
+        <q-card style="width: 650px">
+          <template v-if="loginStep == 1">
+            <q-card-section>
+              <p class="text-h6">Inloggen</p>
+              Je kan opnieuw inloggen op je account op twee manieren.
+            </q-card-section>
+            <q-separator />
+            <q-card-section class="q-pa-md">
+              Weet je je gebruikersnaam nog?<br />
+              <q-input dense outlined v-model="loginUsername" /><br />
+              <q-btn @click="startLoginUsername" :disabled="!loginUsername.trim().length" color="primary">Start inloggen</q-btn>
+            </q-card-section>
+            <q-separator />
+            <q-card-section class="q-pa-md">
+              Zo niet, gebruik dan je e-mailadres. Dit werkt uiteraard alleen als je een e-mailadres
+              hebt ingevuld bij het registreren.<br />
+              <q-input dense outlined v-model="loginEmail" /><br />
+              <q-btn @click="startLoginEmail" :disabled="!loginEmail.trim().length" color="primary">Start inloggen</q-btn>
+            </q-card-section>
+          </template>
+          <template v-else-if="loginStep == 2">
+            <q-card-section>
+              <p class="text-h6">Inloggen</p>
+              Je hebt een e-mail ontvangen met een link. Open deze link om weer in te loggen.
+            </q-card-section>
+          </template>
+          <template v-else-if="loginStep == 3">
+            <q-card-section>
+              <p class="text-h6">Inloggen</p>
+              Je bent succesvol ingelogd als {{ username }}!
+            </q-card-section>
+          </template>
           <template v-if="error">
             <q-separator />
             <q-card-section class="q-pa-md"><strong>{{ error }}</strong></q-card-section>
@@ -317,17 +357,84 @@ function word(who: string | null, word: string) {
 }
 
 const loginOpen = ref(false);
+const loginStep = ref<1 | 2 | 3>(1);
+const loginUsername = ref<string>("");
+const loginEmail = ref<string>("");
+
+function startLogin() {
+  leaderboardOpen.value = false;
+  registerOpen.value = false;
+  loginOpen.value = true;
+  loginStep.value = 1;
+  error.value = "";
+}
+
+async function startLoginUsername() {
+  try {
+    error.value = "";
+    const response = await client.startLogin({
+      username: loginUsername.value.trim(),
+      urlPrefix: window.location.origin + "/#l=",
+    })
+    if (response.found) {
+      loginStep.value = 2;
+    } else {
+      error.value = "Die gebruikersnaam bestaat niet, of heeft geen bijbehorend e-mailadres."
+    }
+  } catch(e) {
+    error.value = errorToString(e);
+  }
+}
+
+async function startLoginEmail() {
+  try {
+    error.value = "";
+    const response = await client.startLogin({
+      email: loginEmail.value.trim(),
+      urlPrefix: window.location.origin + "/#l=",
+    })
+    if (response.found) {
+      loginStep.value = 2;
+    } else {
+      error.value = "Dat e-mailadres is niet gevonden.";
+    }
+  } catch(e) {
+    error.value = errorToString(e);
+  }
+}
+
+onMounted(async () => {
+  if (window.location.hash.startsWith("#l=")) {
+    const token = window.location.hash.substring(3);
+    window.location.hash = "";
+    try {
+      error.value = "";
+      const response = await client.finishLogin({
+        token,
+      });
+      username.value = response.username;
+      loginOpen.value = true;
+      loginStep.value = 3;
+
+      // Also perform a single SubmitScore so that the user ID of the score is updated
+      // if there already was one
+      await updateScore();
+    } catch(e) {
+      error.value = errorToString(e);
+      loginOpen.value = true;
+      loginStep.value = 2;
+    }
+  }
+});
+
+const registerOpen = ref(false);
 const registerUsername = ref<string>("");
 const registerEmail = ref<string>("");
 
-function startLogin() {
-  // TODO: implement login
-  startRegister();
-}
-
 function startRegister() {
   leaderboardOpen.value = false;
-  loginOpen.value = true;
+  loginOpen.value = false;
+  registerOpen.value = true;
   error.value = "";
 }
 
@@ -371,7 +478,7 @@ function onMessage(message: TeamStreamServerMessage): void {
 
 const multiplayerUrl = computed(() => {
   return window.location.origin + "/#m=" + multiplayer.value?.token;
-})
+});
 
 const copyText = ref("klik om te kopiëren");
 

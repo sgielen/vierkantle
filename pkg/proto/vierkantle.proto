@@ -74,9 +74,11 @@ message StartLoginRequest {
   // Either username or email must be filled in.
   string username = 1;
   string email = 2;
+  string urlPrefix = 3;
 }
 
 message StartLoginResponse {
+  bool found = 1;
 }
 
 message FinishLoginRequest {

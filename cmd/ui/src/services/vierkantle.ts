@@ -61,9 +61,11 @@ export interface StartLoginRequest {
   /** Either username or email must be filled in. */
   username: string;
   email: string;
+  urlPrefix: string;
 }
 
 export interface StartLoginResponse {
+  found: boolean;
 }
 
 export interface FinishLoginRequest {
@@ -649,7 +651,7 @@ export const WhoamiResponse = {
 };
 
 function createBaseStartLoginRequest(): StartLoginRequest {
-  return { username: "", email: "" };
+  return { username: "", email: "", urlPrefix: "" };
 }
 
 export const StartLoginRequest = {
@@ -659,6 +661,9 @@ export const StartLoginRequest = {
     }
     if (message.email !== "") {
       writer.uint32(18).string(message.email);
+    }
+    if (message.urlPrefix !== "") {
+      writer.uint32(26).string(message.urlPrefix);
     }
     return writer;
   },
@@ -676,6 +681,9 @@ export const StartLoginRequest = {
         case 2:
           message.email = reader.string();
           break;
+        case 3:
+          message.urlPrefix = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -688,16 +696,20 @@ export const StartLoginRequest = {
     const message = createBaseStartLoginRequest();
     message.username = object.username ?? "";
     message.email = object.email ?? "";
+    message.urlPrefix = object.urlPrefix ?? "";
     return message;
   },
 };
 
 function createBaseStartLoginResponse(): StartLoginResponse {
-  return {};
+  return { found: false };
 }
 
 export const StartLoginResponse = {
-  encode(_: StartLoginResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: StartLoginResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.found === true) {
+      writer.uint32(8).bool(message.found);
+    }
     return writer;
   },
 
@@ -708,6 +720,9 @@ export const StartLoginResponse = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          message.found = reader.bool();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -716,8 +731,9 @@ export const StartLoginResponse = {
     return message;
   },
 
-  fromPartial(_: DeepPartial<StartLoginResponse>): StartLoginResponse {
+  fromPartial(object: DeepPartial<StartLoginResponse>): StartLoginResponse {
     const message = createBaseStartLoginResponse();
+    message.found = object.found ?? false;
     return message;
   },
 };
