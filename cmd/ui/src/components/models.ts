@@ -15,6 +15,8 @@ export interface Board {
   height: number;
   cells: string[][]; // [y][x]
   words: Record<string, WordInBoard>;
+  madeBy?: string;
+  description?: string;
 }
 
 export interface CellState {

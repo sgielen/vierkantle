@@ -12,6 +12,14 @@
       <div class="game-page row items-center q-ma-xl">
         <div class="wordlist">
           <div class="row q-gutter-sm q-ma-sm">
+            <div class="col-12">
+              <p>Dit bord is gemaakt door (optioneel): <q-input dense outlined v-model="board.madeBy" /></p>
+              <p>Beschrijving (optioneel):</p>
+              <textarea v-model="board.description" style="width: 100%; height: 4em;" />
+            </div>
+          </div>
+          <q-separator class="q-ma-sm" />
+          <div class="row q-gutter-sm q-ma-sm">
             <q-input dense outlined type="number" label="Breedte" style="max-width: 80px;" v-model.number="width" />
             <q-input dense outlined type="number" label="Hoogte" style="max-width: 80px;" v-model.number="height" />
             <q-btn @click="reset" color="negative">Nieuw leeg bord</q-btn> <br />
@@ -68,7 +76,7 @@
 <script setup lang="ts">
 import VierkantleBoard from 'components/VierkantleBoard.vue';
 import { Board } from 'src/components/models';
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, computed, watch } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createChannel, createClient } from 'nice-grpc-web';
 import { VierkantleServiceDefinition, VierkantleServiceClient } from '../services/vierkantle';
@@ -78,12 +86,15 @@ import { QInput } from 'quasar';
 import { isAbortError, useUniqueCall } from 'src/services/abort';
 import { errorToString } from 'src/services/errors';
 
+const myName = useStorage<string | undefined>("generatorName", undefined);
+
 function defaultBoard(): Board {
   const b: Board = {
     width: width.value || 4,
     height: height.value || 4,
     cells: [],
     words: {},
+    madeBy: myName.value,
   };
   for (let y = 0; y < b.height; ++y) {
     b.cells[y] = [];
@@ -100,6 +111,12 @@ const board = useStorage<Board>("generatorBoard", defaultBoard(), undefined, { s
 onMounted(() => {
   width.value = board.value.width;
   height.value = board.value.height;
+});
+
+watch(() => board.value.madeBy, () => {
+  if (board.value.madeBy) {
+    myName.value = board.value.madeBy;
+  }
 });
 
 const numWords = computed(() => {
@@ -131,6 +148,13 @@ const boardFilename = computed(() => {
   return new Date().toISOString().slice(0, 10) + ".json";
 })
 
+function replaceBoardFromApi(newBoard: Uint8Array) {
+  const oldBoard = board.value;
+  board.value = JSON.parse(new TextDecoder().decode(newBoard));
+  board.value.madeBy = oldBoard.madeBy;
+  board.value.description = oldBoard.description;
+}
+
 async function seed() {
   loadingProgress.value = 0;
   loading.value = true;
@@ -146,7 +170,7 @@ async function seed() {
     }, { signal: newUniqueCall() });
     for await (const response of responses) {
       if (response.board) {
-        board.value = JSON.parse(new TextDecoder().decode(response.board));
+        replaceBoardFromApi(response.board);
       }
       if (response.progress) {
         loadingProgress.value = response.progress / response.attempts;
@@ -175,7 +199,7 @@ async function fillIn() {
     }, { signal: newUniqueCall() });
     for await (const response of responses) {
       if (response.board) {
-        board.value = JSON.parse(new TextDecoder().decode(response.board));
+        replaceBoardFromApi(response.board);
       }
       if (response.progress) {
         loadingProgress.value = response.progress / response.attempts;
@@ -200,7 +224,7 @@ async function renewWords() {
     const boardResponse = await client.wordsForBoard({
       board: new TextEncoder().encode(JSON.stringify(board.value, null, 0)),
     }, { signal: newUniqueCall() });
-    board.value = JSON.parse(new TextDecoder().decode(boardResponse.board));
+    replaceBoardFromApi(boardResponse.board);
   } catch(e) {
     if (isAbortError(e)) {
       return;

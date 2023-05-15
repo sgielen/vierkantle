@@ -135,6 +135,21 @@
             <q-btn icon="share" @click="share">&nbsp;Delen</q-btn>
             <div v-if="isClipboard">Gekopieerd naar klembord!</div>
           </q-card-section>
+          <template v-if="board?.madeBy || board?.description">
+            <q-separator />
+            <q-card-section class="q-pa-md">
+              <template v-if="board.madeBy && board.description">
+                Het bord van vandaag is gemaakt door <strong>{{ board.madeBy }}</strong> en die
+                stuurde erbij:
+              </template>
+              <template v-else-if="board.madeBy">
+                Het bord van vandaag is gemaakt door <strong>{{ board.madeBy }}</strong>.
+              </template>
+              <template v-if="board.description">
+                <div class="q-ma-sm quote">{{ board.description }}</div>
+              </template>
+            </q-card-section>
+          </template>
         </q-card>
       </q-dialog>
 
@@ -772,6 +787,13 @@ async function updateScore() {
   white-space: pre-wrap;
   background-color: #ccc;
   border: 1px solid black;
+}
+
+.quote {
+  white-space: pre-wrap;
+  font-style: italic;
+  border-left: 4px solid var(--q-primary);
+  padding-left: 6px;
 }
 
 @media screen and (min-width: 500px) {
