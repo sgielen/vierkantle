@@ -28,6 +28,15 @@
         @click="toggleMultiplayer"
       />
 
+      <q-btn
+        class="q-mx-sm"
+        dense
+        color="secondary"
+        icon="share"
+        aria-label="Delen"
+        @click="toggleShare"
+      />
+
       <q-toolbar-title>
         Vierkantle
       </q-toolbar-title>
@@ -115,6 +124,20 @@
         </q-card>
       </q-dialog>
 
+      <q-dialog v-model="shareOpen">
+        <q-card style="width: 650px">
+          <q-card-section>
+            <p class="text-h6">Delen</p>
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="q-pa-md">
+            <div class="share q-pa-md q-ma-md">{{ shareText }}</div>
+            <q-btn icon="share" @click="share">&nbsp;Delen</q-btn>
+            <div v-if="isClipboard">Gekopieerd naar klembord!</div>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+
       <q-dialog v-model="registerOpen">
         <q-card style="width: 650px">
           <q-card-section>
@@ -185,7 +208,7 @@
           <div class="row items-center justify-evenly">
             <div v-if="error">{{ error }}</div>
             <div v-else-if="!board">Loading board...</div>
-            <div class="game" v-else>
+            <div class="game" ref="gameRef" v-else>
               <VierkantleBoard
                 :board="board"
                 @word="word(null, $event)"
@@ -206,7 +229,7 @@
 <script setup lang="ts">
 import VierkantleBoard from 'components/VierkantleBoard.vue';
 import { Board } from 'src/components/models';
-import { computed, onMounted, ref, reactive, watchEffect } from 'vue';
+import { computed, onMounted, ref, reactive, watchEffect, watch } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { Multiplayer } from 'src/services/multiplayer';
 import VierkantleTop from 'src/components/VierkantleTop.vue';
@@ -215,6 +238,7 @@ import { VierkantleServiceDefinition, VierkantleServiceClient, TeamStreamServerM
 import WordList from 'src/components/WordList.vue';
 import VierkantleLeaderboard from 'src/components/VierkantleLeaderboard.vue';
 import { errorToString } from 'src/services/errors';
+import { confetti, ConfettiOptions } from 'tsparticles-confetti';
 
 const board_ = useStorage<Board | undefined>("board", undefined, undefined, { serializer: StorageSerializers.object });
 const anonymousId = useStorage("anonymousId", Math.floor(Math.random() * 4294967295 /* UINT32_MAX */));
@@ -306,8 +330,115 @@ function toggleLeaderboard() {
   leaderboardOpen.value = !leaderboardOpen.value;
 }
 
+const shareOpen = ref(false);
+const shareText = computed(() => {
+  let text = "https://vierkantle.nl/ " + boardName.value + "\n";
+  text += wordsGuessed.value + "/" + wordsTotal.value + " woorden in " + timeSpent.value;
+  return text;
+});
+const isClipboard = ref(false);
+async function share() {
+  try {
+    navigator.clipboard.writeText(shareText.value);
+    isClipboard.value = true;
+    setTimeout(() => isClipboard.value = false, 5000);
+  } catch(e) {}
+  try {
+    await navigator.share({
+      text: shareText.value,
+    });
+  } catch(e) {}
+}
+function toggleShare() {
+  shareOpen.value = !shareOpen.value;
+}
+const gameRef = ref<HTMLDivElement>();
+function boardDoneAnimation() {
+  const count = 200;
+
+  const gameRect = gameRef.value!.getBoundingClientRect();
+  const gameMidX = gameRect.left + (gameRect.width / 2);
+  const gameBotY = gameRect.bottom - 100;
+  const defaults: ConfettiOptions = {
+    origin: {
+      x: gameMidX / window.innerWidth,
+      y: gameBotY / window.innerHeight,
+    },
+  };
+
+  const fire = (particleRatio: number, opts: ConfettiOptions) => {
+    confetti(
+      Object.assign({}, defaults, opts, {
+        particleCount: Math.floor(count * particleRatio),
+      })
+    );
+  }
+
+  const fireworks = () => {
+    const factor = Math.random();
+    fire(0.25, {
+      spread: 10 + factor * 30,
+      startVelocity: 55,
+    });
+
+    fire(0.2, {
+      spread: 60,
+    });
+
+    fire(0.35, {
+      spread: 10 + factor * 120,
+      decay: 0.91,
+      scalar: 0.8,
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2,
+    });
+
+    fire(0.1, {
+      spread: 20 + factor * 250,
+      startVelocity: 45,
+    });
+  }
+
+  fireworks();
+
+  let fireworksCount = 0;
+
+  const interval = setInterval(() => {
+    if (fireworksCount == 3) {
+      clearInterval(interval);
+    }
+    fireworks();
+    fireworksCount++;
+  }, 1200);
+
+  setTimeout(() => shareOpen.value = true, 3000);
+}
+
+const wordsTotal = computed(() => {
+  return Object.values(board.value?.words ?? []).filter((w) => !w.bonus).length;
+});
+
+const wordsGuessed = computed(() => {
+  if (!board.value) {
+    return 0;
+  }
+
+  return Object.values(board.value.words).filter((w) => !w.bonus && w.guessed).length;
+});
+
 const boardIsDone = computed(() => {
   return Object.values(board.value?.words ?? {}).find((f) => !f.guessed && !f.bonus) === undefined;
+});
+
+watch(boardIsDone, (newV, oldV) => {
+  if (!oldV && newV) {
+    boardDoneAnimation();
+  }
 });
 
 function boardLetters(b: Board): string {
@@ -635,6 +766,12 @@ async function updateScore() {
   border: 1px solid black;
   overflow: scroll;
   padding: 4px;
+}
+
+.share {
+  white-space: pre-wrap;
+  background-color: #ccc;
+  border: 1px solid black;
 }
 
 @media screen and (min-width: 500px) {
