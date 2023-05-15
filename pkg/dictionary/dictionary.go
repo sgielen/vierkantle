@@ -1,6 +1,10 @@
 package dictionary
 
-import "strings"
+import (
+	"errors"
+	"io/fs"
+	"strings"
+)
 
 // Word lists are read assuming that all words are the same WordType.
 // A word is registered in the Dictionary with the highest WordType
@@ -63,6 +67,10 @@ func (dictionary *prefixDictionary) ReadFromFile(file string, wordType WordType,
 func (dictionary *prefixDictionary) ReadForceTypeFromFile(file string) error {
 	reader, err := NewForceTypeFileReader(file)
 	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			// file doesn't exist, i.e. no words
+			return nil
+		}
 		return err
 	}
 	dictionary.Read(reader, NoWord, false)
