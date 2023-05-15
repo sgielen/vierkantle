@@ -240,13 +240,17 @@ const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition
 
 const username = ref<string>();
 
+const anyDialogOpen = computed(() => {
+  return wordListOpen.value || multiplayerOpen.value || leaderboardOpen.value || shareOpen.value || loginOpen.value || registerOpen.value;
+})
+
 onMounted(async () => {
   seconds.value ??= 0;
   setInterval(() => {
-    if (document.hasFocus() && !boardIsDone.value) {
-      seconds.value! += 1;
+    if (document.hasFocus() && !boardIsDone.value && !anyDialogOpen.value) {
+      seconds.value! += 0.1;
     }
-  }, 1000)
+  }, 100)
 
   // Download the board to check if there is a new one available
   try {
