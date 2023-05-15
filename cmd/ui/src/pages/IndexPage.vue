@@ -40,6 +40,8 @@
       <q-toolbar-title>
         Vierkantle
       </q-toolbar-title>
+
+      <q-toggle v-model="dark" icon="dark_mode" color="secondary" />
     </q-toolbar>
   </q-header>
 
@@ -261,6 +263,17 @@ import WordList from 'src/components/WordList.vue';
 import VierkantleLeaderboard from 'src/components/VierkantleLeaderboard.vue';
 import { errorToString } from 'src/services/errors';
 import { confetti, ConfettiOptions } from 'tsparticles-confetti';
+import { useQuasar } from 'quasar';
+
+const $q = useQuasar();
+const dark = computed({
+  get() {
+    return $q.dark.isActive;
+  },
+  set(status: boolean) {
+    $q.dark.set(status);
+  },
+});
 
 const board_ = useStorage<Board | undefined>("board", undefined, undefined, { serializer: StorageSerializers.object });
 const anonymousId = useStorage("anonymousId", Math.floor(Math.random() * 4294967295 /* UINT32_MAX */));
@@ -808,6 +821,22 @@ async function updateScore() {
   font-style: italic;
   border-left: 4px solid var(--q-primary);
   padding-left: 6px;
+}
+
+body.body--dark {
+  header {
+    background-color: #0d4174;
+  }
+
+  .wordlist {
+    background: var(--q-dark-page);
+    border: 1px solid white;
+  }
+
+  .share {
+    background-color: #0d4174;
+    border: 1px solid white;
+  }
 }
 
 @media screen and (min-width: 500px) {

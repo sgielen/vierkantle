@@ -102,4 +102,10 @@ const lastNWords = computed(() => {
     }
   }
 }
+
+body.body--dark {
+  .outer .lastwords .lastword span {
+    background-color: var(--q-dark-page);
+  }
+}
 </style>

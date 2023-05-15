@@ -122,4 +122,16 @@ function blur() {
     right: 5%;
   }
 }
+
+body.body--dark .cell {
+  border: 2px solid white;
+
+  &.unused {
+    background-color: #545454;
+  }
+
+  .firstLetter {
+    color: #fffe00;
+  }
+}
 </style>
