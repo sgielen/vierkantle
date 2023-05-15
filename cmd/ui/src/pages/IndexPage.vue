@@ -48,7 +48,7 @@
       <q-dialog v-model="multiplayerOpen">
         <q-card style="width: 650px">
           <q-card-section>
-            <p class="text-h6">Multiplayer-modus</p>
+            <span class="text-h6">Multiplayer-modus</span>
           </q-card-section>
           <q-separator />
           <q-card-section v-if="multiplayerError">
@@ -91,7 +91,7 @@
         <q-card style="width: 650px">
           <q-card-section>
             <div class="row justify-between">
-              <div><p class="text-h6">Scorebord</p></div>
+              <div><span class="text-h6">Scorebord</span></div>
               <div>
                 <q-toggle
                   v-model="enableSubmitScores"
@@ -127,7 +127,7 @@
       <q-dialog v-model="shareOpen">
         <q-card style="width: 650px">
           <q-card-section>
-            <p class="text-h6">Delen</p>
+            <span class="text-h6">Delen</span>
           </q-card-section>
           <q-separator />
           <q-card-section class="q-pa-md">
@@ -140,7 +140,7 @@
             <q-card-section class="q-pa-md">
               <template v-if="board.madeBy && board.description">
                 Het bord van vandaag is gemaakt door <strong>{{ board.madeBy }}</strong> en die
-                stuurde erbij:
+                schrijft erbij:
               </template>
               <template v-else-if="board.madeBy">
                 Het bord van vandaag is gemaakt door <strong>{{ board.madeBy }}</strong>.
@@ -156,7 +156,7 @@
       <q-dialog v-model="registerOpen">
         <q-card style="width: 650px">
           <q-card-section>
-            <p class="text-h6">Registreren</p>
+            <span class="text-h6">Registreren</span>
           </q-card-section>
           <q-separator />
           <q-card-section class="q-pa-md">
@@ -178,7 +178,7 @@
         <q-card style="width: 650px">
           <template v-if="loginStep == 1">
             <q-card-section>
-              <p class="text-h6">Inloggen</p>
+              <span class="text-h6">Inloggen</span>
               Je kan opnieuw inloggen op je account op twee manieren.
             </q-card-section>
             <q-separator />
@@ -197,13 +197,13 @@
           </template>
           <template v-else-if="loginStep == 2">
             <q-card-section>
-              <p class="text-h6">Inloggen</p>
+              <span class="text-h6">Inloggen</span>
               Je hebt een e-mail ontvangen met een link. Open deze link om weer in te loggen.
             </q-card-section>
           </template>
           <template v-else-if="loginStep == 3">
             <q-card-section>
-              <p class="text-h6">Inloggen</p>
+              <span class="text-h6">Inloggen</span>
               Je bent succesvol ingelogd als {{ username }}!
             </q-card-section>
           </template>
