@@ -130,6 +130,10 @@ body.body--dark .cell {
     background-color: #545454;
   }
 
+  &.empty {
+    border: none;
+  }
+
   &.empty.unused {
     background-color: transparent !important;
   }
