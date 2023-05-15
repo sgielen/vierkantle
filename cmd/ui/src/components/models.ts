@@ -10,7 +10,7 @@ export interface WordInBoard {
 }
 
 export interface Board {
-  loadedAt?: string;
+  name?: string;
   width: number;
   height: number;
   cells: string[][]; // [y][x]

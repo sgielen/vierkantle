@@ -267,10 +267,12 @@ const anonymousId = useStorage("anonymousId", Math.floor(Math.random() * 4294967
 const seconds = useStorage("seconds", 0);
 const enableSubmitScores = useStorage("enableSubmitScores", true);
 
-const boardName = ref("");
 const board = computed(() => {
   return board_.value;
 });
+const boardName = computed(() => {
+  return board.value?.name ?? "";
+})
 
 const timeSpent = computed(() => {
   let sec = Math.floor(seconds.value);
@@ -304,11 +306,15 @@ onMounted(async () => {
     const boardResponse = await client.getBoard({
       timezoneOffsetMinutes: new Date().getTimezoneOffset(),
     });
-    boardName.value = boardResponse.name ?? "";
     const board = JSON.parse(new TextDecoder().decode(boardResponse.board));
+    board.name = boardResponse.name;
     if (!board_.value || boardLetters(board) != boardLetters(board_.value)) {
       board_.value = board;
       seconds.value = 0;
+    }
+    /* TODO: Remove */
+    else {
+      board_.value.name = boardResponse.name;
     }
   } catch(e) {
     error.value = errorToString(e);
