@@ -48,12 +48,12 @@ func (b *Board) wordsInBoard(words *map[string]WordInBoard, dict dictionary.Pref
 	}
 }
 
-func (b *Board) FindUnusedCells(words []WordInBoard) []Coord {
+func (b *Board) FindUnusedLetters(words []WordInBoard) []Coord {
 	cells := make([][]bool, b.Height)
 	for y := range cells {
 		cells[y] = make([]bool, b.Width)
 		for x := range cells[y] {
-			cells[y][x] = false
+			cells[y][x] = !IsLetter(b.Cells[y][x])
 		}
 	}
 	cellsRemaining := b.Width * b.Height

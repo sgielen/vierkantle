@@ -10,6 +10,21 @@ import (
 	"github.com/sgielen/vierkantle/pkg/dictionary"
 )
 
+var letters = []rune("abcdefghijklmnopqrstuvwxyz")
+
+func IsLetter(r rune) bool {
+	for _, l := range letters {
+		if l == r {
+			return true
+		}
+	}
+	return false
+}
+
+func IsExplicitlyUnused(r rune) bool {
+	return r == 0 || r == ' ' || r == '?'
+}
+
 func (b *Board) randomPathWithLength(length int, path []Coord) []Coord {
 	nextPaths := b.NextNavigationsFrom(path)
 
@@ -55,11 +70,10 @@ func (b *Board) PrefillRandomly(word string) error {
 }
 
 func (b *Board) FillRandomly() {
-	letters := []rune("abcdefghijklmnopqrstuvwxyz")
 	random := rand.New(rand.NewSource(time.Now().UnixMilli()))
 	for y := 0; y < b.Height; y++ {
 		for x := 0; x < b.Width; x++ {
-			if b.Cells[y][x] == '?' || b.Cells[y][x] == 0 {
+			if IsExplicitlyUnused(b.Cells[y][x]) {
 				b.Cells[y][x] = letters[random.Intn(len(letters))]
 			}
 		}
@@ -79,7 +93,7 @@ func (b *Board) FillFullyUsed(dict dictionary.PrefixDictionary) ([]WordInBoard, 
 	for subAttempt := 0; subAttempt < subAttempts; subAttempt++ {
 		b.FillRandomly()
 		words = b.WordsInBoard(dict, 4)
-		unusedCells = b.FindUnusedCells(words)
+		unusedCells = b.FindUnusedLetters(words)
 		if len(unusedCells) == 0 {
 			break
 		}

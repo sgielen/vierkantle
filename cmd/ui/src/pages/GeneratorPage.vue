@@ -125,7 +125,7 @@ const numWords = computed(() => {
   return `${normalWords} woorden, ${bonusWords} bonuswoorden`;
 });
 const usage = computed(() => {
-  return "Dubbelklik om een cel in te vullen. Cel leeg laten met <spatie>. Na wijzigen woordenlijst hernieuwen."
+  return "Dubbelklik om een cel in te vullen. Cel leeg maken met <spatie>. Na wijzigen woordenlijst hernieuwen."
 });
 
 const error = ref("");
