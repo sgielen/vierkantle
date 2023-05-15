@@ -4,6 +4,8 @@
       <q-toolbar-title>
         Vierkantle Generator
       </q-toolbar-title>
+
+      <q-toggle v-model="dark" icon="dark_mode" color="secondary" />
     </q-toolbar>
   </q-header>
 
@@ -85,6 +87,17 @@ import LabelAutofit from 'src/components/LabelAutofit.vue';
 import { QInput } from 'quasar';
 import { isAbortError, useUniqueCall } from 'src/services/abort';
 import { errorToString } from 'src/services/errors';
+import { useQuasar } from 'quasar';
+
+const $q = useQuasar();
+const dark = computed({
+  get() {
+    return $q.dark.isActive;
+  },
+  set(status: boolean) {
+    $q.dark.set(status);
+  },
+});
 
 const myName = useStorage<string | undefined>("generatorName", undefined);
 
@@ -314,6 +327,17 @@ const file = computed<any>({
 
 .error {
   color: red;
+}
+
+body.body--dark {
+  header {
+    background-color: #0d4174;
+  }
+
+  .wordlist {
+    background: var(--q-dark-page);
+    border: 1px solid white;
+  }
 }
 
 @media screen and (min-width: 500px) {
