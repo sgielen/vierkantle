@@ -7,9 +7,9 @@ import (
 )
 
 type BoardJsonWord struct {
-	Path  Path `json:"path"`
-	Bonus bool `json:"bonus,omitempty"`
-	Swear bool `json:"swear,omitempty"`
+	Path      Path `json:"path"`
+	Bonus     bool `json:"bonus,omitempty"`
+	Sensitive bool `json:"sensitive,omitempty"`
 }
 
 type BoardJsonExport struct {
@@ -37,9 +37,9 @@ func (b *Board) PrintBoardJson(words []WordInBoard) ([]byte, error) {
 	res.Words = make(map[string]BoardJsonWord)
 	for _, word := range words {
 		res.Words[word.Word] = BoardJsonWord{
-			Path:  word.Path,
-			Bonus: word.WordType == dictionary.BonusWord,
-			Swear: word.WordType == dictionary.SwearWord,
+			Path:      word.Path,
+			Bonus:     word.WordType == dictionary.BonusWord,
+			Sensitive: word.WordType == dictionary.SensitiveWord,
 		}
 	}
 	return json.Marshal(res)
@@ -70,8 +70,8 @@ func BoardFromJson(data []byte) (*Board, []WordInBoard, error) {
 		var wordType dictionary.WordType
 		if wordInBoard.Bonus {
 			wordType = dictionary.BonusWord
-		} else if wordInBoard.Swear {
-			wordType = dictionary.SwearWord
+		} else if wordInBoard.Sensitive {
+			wordType = dictionary.SensitiveWord
 		} else {
 			wordType = dictionary.NormalWord
 		}

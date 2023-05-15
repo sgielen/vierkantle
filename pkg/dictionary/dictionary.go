@@ -6,14 +6,14 @@ import "strings"
 // A word is registered in the Dictionary with the highest WordType
 // value, i.e. if a word exists only in a Bonus list it is Bonus
 // type, if it exists in Bonus and Normal it is Normal type, and
-// if it exists at all in a Swear list it is always a Swear word.
+// if it exists at all in a Sensitive list it is always a Sensitive word.
 type WordType int
 
 const (
 	NoWord WordType = iota
 	BonusWord
 	NormalWord
-	SwearWord
+	SensitiveWord
 )
 
 type HasWordsWithPrefixResult struct {

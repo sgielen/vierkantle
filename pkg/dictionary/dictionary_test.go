@@ -123,7 +123,7 @@ func TestDictionaryWordTypes(t *testing.T) {
 	reader = wordReader{Words: []string{"hello", "pot", "foo"}}
 	dict.Read(&reader, dictionary.NormalWord, false)
 	reader = wordReader{Words: []string{"potato", "foo", "mumble"}}
-	dict.Read(&reader, dictionary.SwearWord, true /* upgrade only */)
+	dict.Read(&reader, dictionary.SensitiveWord, true /* upgrade only */)
 	if diff := deep.Equal(dict.HasWord("hello"), &dictionary.HasWordsWithPrefixResult{
 		// normal goes over bonus
 		HasThisWord:        dictionary.NormalWord,
@@ -139,15 +139,15 @@ func TestDictionaryWordTypes(t *testing.T) {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("potato"), &dictionary.HasWordsWithPrefixResult{
-		// swear goes over bonus
-		HasThisWord:        dictionary.SwearWord,
+		// sensitive goes over bonus
+		HasThisWord:        dictionary.SensitiveWord,
 		HasWordsWithPrefix: false,
 	}); diff != nil {
 		t.Fatal(diff)
 	}
 	if diff := deep.Equal(dict.HasWord("foo"), &dictionary.HasWordsWithPrefixResult{
-		// swear goes over normal
-		HasThisWord:        dictionary.SwearWord,
+		// sensitive goes over normal
+		HasThisWord:        dictionary.SensitiveWord,
 		HasWordsWithPrefix: false,
 	}); diff != nil {
 		t.Fatal(diff)

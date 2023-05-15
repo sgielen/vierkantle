@@ -156,8 +156,8 @@ func main() {
 			tp := ""
 			if w.WordType == dictionary.BonusWord {
 				tp = " (bonus)"
-			} else if w.WordType == dictionary.SwearWord {
-				tp = " (swear)"
+			} else if w.WordType == dictionary.SensitiveWord {
+				tp = " (sensitive)"
 			}
 			log.Printf("- %s%s", w.Word, tp)
 			if w.WordType == dictionary.NormalWord {
