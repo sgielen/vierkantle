@@ -2,7 +2,7 @@
   <q-header elevated>
     <q-toolbar>
       <q-btn
-        class="only-if-small q-mx-sm"
+        class="only-if-small topbar-button-margin"
         dense
         color="secondary"
         icon="spellcheck"
@@ -11,7 +11,7 @@
       />
 
       <q-btn
-        class="q-mx-sm"
+        class="topbar-button-margin"
         dense
         color="secondary"
         icon="leaderboard"
@@ -20,7 +20,7 @@
       />
 
       <q-btn
-        class="q-mx-sm"
+        class="topbar-button-margin"
         dense
         color="secondary"
         icon="groups"
@@ -29,7 +29,7 @@
       />
 
       <q-btn
-        class="q-mx-sm"
+        class="topbar-button-margin"
         dense
         color="secondary"
         icon="share"
@@ -887,6 +887,24 @@ body.body--dark {
 @media screen and (max-height: 500px) {
   .game {
     font-size: 30px;
+  }
+}
+
+.topbar-button-margin {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+@media screen and (max-width: 400px) {
+  /* Smaller top bar buttons, so the word "Vierkantle" isn't shortened */
+  .topbar-button-margin {
+    margin-left: 1px;
+    margin-right: 1px;
+  }
+
+  .q-toolbar__title {
+    padding: 0;
+    padding-left: 6px;
   }
 }
 </style>
