@@ -130,8 +130,17 @@ body.body--dark .cell {
     background-color: #545454;
   }
 
+  &.empty.unused {
+    background-color: transparent !important;
+  }
+
+  &.empty.generator {
+    border: 1px dashed white !important;
+  }
+
   .firstLetter {
     color: #fffe00;
   }
+
 }
 </style>
