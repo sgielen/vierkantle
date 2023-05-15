@@ -20,6 +20,7 @@ service VierkantleService {
   rpc WordsForBoard(WordsForBoardRequest) returns (WordsForBoardResponse) {}
   rpc SeedBoard(SeedBoardRequest) returns (stream SeedBoardResponse) {}
   rpc FillInBoard(FillInBoardRequest) returns (stream FillInBoardResponse) {}
+  rpc MarkWordType(MarkWordTypeRequest) returns (MarkWordTypeResponse) {}
 
   rpc TeamStream(stream TeamStreamClientMessage) returns (stream TeamStreamServerMessage) {}
 }
@@ -135,6 +136,13 @@ message FillInBoardResponse {
   int32 attempts = 2;
   int32 progress = 3;
 }
+
+message MarkWordTypeRequest {
+  string word = 1;
+  bool bonus = 2;
+}
+
+message MarkWordTypeResponse {}
 
 message CreateTeamRequest {
   string name = 1;

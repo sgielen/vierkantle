@@ -90,7 +90,7 @@ func main() {
 	if seedWord != "" {
 		dict.AddWord(dictionary.WordReadResult{
 			Word: seedWord,
-		}, dictionary.NormalWord, false)
+		}, dictionary.NormalWord, false, true)
 	}
 	attempts := 10000
 	for attempt := 0; attempt < attempts; attempt++ {

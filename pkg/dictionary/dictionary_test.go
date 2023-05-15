@@ -3,6 +3,7 @@ package dictionary_test
 import (
 	"fmt"
 	"math/rand"
+	"os"
 	"strings"
 	"testing"
 
@@ -202,5 +203,69 @@ func BenchmarkDictionary(b *testing.B) {
 				dict.HasWord("dictionaries")
 			}
 		})
+	}
+}
+
+func TestDictionaryForceType(t *testing.T) {
+	fh, err := os.CreateTemp(os.TempDir(), "vierkantletest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tempfile := fh.Name()
+
+	if err := dictionary.AddForceTypeToFile(tempfile, "testno", dictionary.NoWord); err != nil {
+		t.Fatal(err)
+	}
+	if err := dictionary.AddForceTypeToFile(tempfile, "testnorm", dictionary.NormalWord); err != nil {
+		t.Fatal(err)
+	}
+	if err := dictionary.AddForceTypeToFile(tempfile, "testbon", dictionary.BonusWord); err != nil {
+		t.Fatal(err)
+	}
+	if err := dictionary.AddForceTypeToFile(tempfile, "testsens", dictionary.SensitiveWord); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := dictionary.AddForceTypeToFile(tempfile, "test2bon", dictionary.NormalWord); err != nil {
+		t.Fatal(err)
+	}
+	if err := dictionary.AddForceTypeToFile(tempfile, "test2bon", dictionary.BonusWord); err != nil {
+		t.Fatal(err)
+	}
+
+	dict := dictionary.NewPrefixDictionary()
+	if err := dict.ReadForceTypeFromFile(tempfile); err != nil {
+		t.Fatal(err)
+	}
+
+	if diff := deep.Equal(dict.HasWord("testno"), &dictionary.HasWordsWithPrefixResult{
+		HasThisWord:        dictionary.NoWord,
+		HasWordsWithPrefix: true,
+	}); diff != nil {
+		t.Fatal(diff)
+	}
+	if diff := deep.Equal(dict.HasWord("testnorm"), &dictionary.HasWordsWithPrefixResult{
+		HasThisWord:        dictionary.NormalWord,
+		HasWordsWithPrefix: false,
+	}); diff != nil {
+		t.Fatal(diff)
+	}
+	if diff := deep.Equal(dict.HasWord("testbon"), &dictionary.HasWordsWithPrefixResult{
+		HasThisWord:        dictionary.BonusWord,
+		HasWordsWithPrefix: false,
+	}); diff != nil {
+		t.Fatal(diff)
+	}
+	if diff := deep.Equal(dict.HasWord("testsens"), &dictionary.HasWordsWithPrefixResult{
+		HasThisWord:        dictionary.SensitiveWord,
+		HasWordsWithPrefix: false,
+	}); diff != nil {
+		t.Fatal(diff)
+	}
+	if diff := deep.Equal(dict.HasWord("test2bon"), &dictionary.HasWordsWithPrefixResult{
+		HasThisWord:        dictionary.BonusWord,
+		HasWordsWithPrefix: false,
+	}); diff != nil {
+		t.Fatal(diff)
 	}
 }

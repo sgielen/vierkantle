@@ -25,6 +25,7 @@ type HasWordsWithPrefixResult struct {
 type WordReadResult struct {
 	Word      string
 	Frequency float64
+	ForceType *WordType
 }
 
 type WordReader interface {
@@ -37,7 +38,7 @@ type PrefixDictionary interface {
 
 type RWPrefixDictionary interface {
 	HasWord(string) *HasWordsWithPrefixResult
-	AddWord(WordReadResult, WordType, bool)
+	AddWord(WordReadResult, WordType, bool, bool)
 }
 
 type prefixDictionary struct {
@@ -50,16 +51,25 @@ func NewPrefixDictionary() *prefixDictionary {
 	}
 }
 
-func (dictionary *prefixDictionary) ReadFromFile(file string, wordTypes WordType, upgradeOnly bool) error {
+func (dictionary *prefixDictionary) ReadFromFile(file string, wordType WordType, upgradeOnly bool) error {
 	reader, err := NewFileReader(file)
 	if err != nil {
 		return err
 	}
-	dictionary.Read(reader, wordTypes, upgradeOnly)
+	dictionary.Read(reader, wordType, upgradeOnly)
 	return nil
 }
 
-func (dictionary *prefixDictionary) AddWord(word WordReadResult, wordType WordType, upgradeOnly bool) {
+func (dictionary *prefixDictionary) ReadForceTypeFromFile(file string) error {
+	reader, err := NewForceTypeFileReader(file)
+	if err != nil {
+		return err
+	}
+	dictionary.Read(reader, NoWord, false)
+	return nil
+}
+
+func (dictionary *prefixDictionary) AddWord(word WordReadResult, wordType WordType, upgradeOnly bool, forceType bool) {
 	word.Word = NormalizeWord(word.Word)
 	for i := 1; i < len(word.Word); i++ {
 		prefix := word.Word[0:i]
@@ -74,7 +84,7 @@ func (dictionary *prefixDictionary) AddWord(word WordReadResult, wordType WordTy
 		}
 	}
 	if v, ok := dictionary.Prefixes[word.Word]; ok {
-		if wordType > v.HasThisWord {
+		if forceType || wordType > v.HasThisWord {
 			v.HasThisWord = wordType
 		}
 		if word.Frequency > v.Frequency {
@@ -89,13 +99,19 @@ func (dictionary *prefixDictionary) AddWord(word WordReadResult, wordType WordTy
 	}
 }
 
-func (dictionary *prefixDictionary) Read(reader WordReader, wordTypes WordType, upgradeOnly bool) {
+func (dictionary *prefixDictionary) Read(reader WordReader, wordType WordType, upgradeOnly bool) {
 	for {
 		word := reader.ReadWord()
 		if word.Word == "" {
 			break
 		}
-		dictionary.AddWord(word, wordTypes, upgradeOnly)
+		thisType := wordType
+		forceType := false
+		if word.ForceType != nil {
+			thisType = *word.ForceType
+			forceType = true
+		}
+		dictionary.AddWord(word, thisType, upgradeOnly, forceType)
 	}
 }
 

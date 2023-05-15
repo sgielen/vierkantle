@@ -30,6 +30,7 @@ type VierkantleServiceClient interface {
 	WordsForBoard(ctx context.Context, in *WordsForBoardRequest, opts ...grpc.CallOption) (*WordsForBoardResponse, error)
 	SeedBoard(ctx context.Context, in *SeedBoardRequest, opts ...grpc.CallOption) (VierkantleService_SeedBoardClient, error)
 	FillInBoard(ctx context.Context, in *FillInBoardRequest, opts ...grpc.CallOption) (VierkantleService_FillInBoardClient, error)
+	MarkWordType(ctx context.Context, in *MarkWordTypeRequest, opts ...grpc.CallOption) (*MarkWordTypeResponse, error)
 	TeamStream(ctx context.Context, opts ...grpc.CallOption) (VierkantleService_TeamStreamClient, error)
 }
 
@@ -186,6 +187,15 @@ func (x *vierkantleServiceFillInBoardClient) Recv() (*FillInBoardResponse, error
 	return m, nil
 }
 
+func (c *vierkantleServiceClient) MarkWordType(ctx context.Context, in *MarkWordTypeRequest, opts ...grpc.CallOption) (*MarkWordTypeResponse, error) {
+	out := new(MarkWordTypeResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/MarkWordType", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *vierkantleServiceClient) TeamStream(ctx context.Context, opts ...grpc.CallOption) (VierkantleService_TeamStreamClient, error) {
 	stream, err := c.cc.NewStream(ctx, &VierkantleService_ServiceDesc.Streams[2], "/nl.vierkantle.VierkantleService/TeamStream", opts...)
 	if err != nil {
@@ -233,6 +243,7 @@ type VierkantleServiceServer interface {
 	WordsForBoard(context.Context, *WordsForBoardRequest) (*WordsForBoardResponse, error)
 	SeedBoard(*SeedBoardRequest, VierkantleService_SeedBoardServer) error
 	FillInBoard(*FillInBoardRequest, VierkantleService_FillInBoardServer) error
+	MarkWordType(context.Context, *MarkWordTypeRequest) (*MarkWordTypeResponse, error)
 	TeamStream(VierkantleService_TeamStreamServer) error
 }
 
@@ -272,6 +283,9 @@ func (UnimplementedVierkantleServiceServer) SeedBoard(*SeedBoardRequest, Vierkan
 }
 func (UnimplementedVierkantleServiceServer) FillInBoard(*FillInBoardRequest, VierkantleService_FillInBoardServer) error {
 	return status.Errorf(codes.Unimplemented, "method FillInBoard not implemented")
+}
+func (UnimplementedVierkantleServiceServer) MarkWordType(context.Context, *MarkWordTypeRequest) (*MarkWordTypeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MarkWordType not implemented")
 }
 func (UnimplementedVierkantleServiceServer) TeamStream(VierkantleService_TeamStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method TeamStream not implemented")
@@ -492,6 +506,24 @@ func (x *vierkantleServiceFillInBoardServer) Send(m *FillInBoardResponse) error 
 	return x.ServerStream.SendMsg(m)
 }
 
+func _VierkantleService_MarkWordType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkWordTypeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).MarkWordType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/MarkWordType",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).MarkWordType(ctx, req.(*MarkWordTypeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _VierkantleService_TeamStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	return srv.(VierkantleServiceServer).TeamStream(&vierkantleServiceTeamStreamServer{stream})
 }
@@ -560,6 +592,10 @@ var VierkantleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WordsForBoard",
 			Handler:    _VierkantleService_WordsForBoard_Handler,
+		},
+		{
+			MethodName: "MarkWordType",
+			Handler:    _VierkantleService_MarkWordType_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -132,6 +132,8 @@ const error = ref("");
 const loading = ref(false);
 const loadingProgress = ref(0);
 const backendAddress = window.location.origin + "/api";
+const channel = createChannel(backendAddress);
+const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
 
 const { newUniqueCall } = useUniqueCall();
 
@@ -160,8 +162,6 @@ async function seed() {
   loading.value = true;
   error.value = "";
   try {
-    const channel = createChannel(backendAddress);
-    const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
     const responses = client.seedBoard({
       seedWord: seedword.value,
       width: width.value,
@@ -191,8 +191,6 @@ async function fillIn() {
   loading.value = true;
   error.value = "";
   try {
-    const channel = createChannel(backendAddress);
-    const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
     const responses = client.fillInBoard({
       board: new TextEncoder().encode(JSON.stringify(board.value, null, 0)),
       attempts: 10000,
@@ -219,8 +217,6 @@ async function renewWords() {
   loading.value = true;
   error.value = "";
   try {
-    const channel = createChannel(backendAddress);
-    const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
     const boardResponse = await client.wordsForBoard({
       board: new TextEncoder().encode(JSON.stringify(board.value, null, 0)),
     }, { signal: newUniqueCall() });
@@ -239,9 +235,14 @@ function updateLetter(x: number, y: number, letter: string) {
   board.value.cells[y][x] = letter;
 }
 
-function setWordBonus(word: string, bonus: boolean) {
+async function setWordBonus(word: string, bonus: boolean) {
   if (word in board.value.words) {
     board.value.words[word].bonus = bonus;
+    try {
+      await client.markWordType({ word, bonus });
+    } catch(e) {
+      console.log("markWordType error: ", e);
+    }
   }
 }
 

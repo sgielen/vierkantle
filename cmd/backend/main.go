@@ -30,10 +30,11 @@ func (s *Strings) Set(value string) error {
 }
 
 var (
-	port       = flag.Uint("port", 9001, "Listen on this TCP port")
-	boards     = flag.String("boards", "./boards", "Path to the boards")
-	wordLists  Strings
-	bonusLists Strings
+	port              = flag.Uint("port", 9001, "Listen on this TCP port")
+	boards            = flag.String("boards", "./boards", "Path to the boards")
+	wordLists         Strings
+	bonusLists        Strings
+	forceWordTypeList = flag.String("forceWordType", "", "Path to file that forces word type")
 )
 
 type vierkantleService struct {
@@ -41,8 +42,9 @@ type vierkantleService struct {
 	teams    VierkantleTeams
 	boardDir string
 
-	wordLists  []string
-	bonusLists []string
+	wordLists         []string
+	bonusLists        []string
+	forceWordTypeList string
 }
 
 func main() {
@@ -71,11 +73,12 @@ func main() {
 	)
 	pb.RegisterVierkantleServiceServer(grpcServer,
 		&vierkantleService{
-			log:        log.New(os.Stderr, "vierkantle: ", log.LstdFlags),
-			teams:      *NewVierkantleTeams(),
-			boardDir:   *boards,
-			wordLists:  wordLists,
-			bonusLists: bonusLists,
+			log:               log.New(os.Stderr, "vierkantle: ", log.LstdFlags),
+			teams:             *NewVierkantleTeams(),
+			boardDir:          *boards,
+			wordLists:         wordLists,
+			bonusLists:        bonusLists,
+			forceWordTypeList: *forceWordTypeList,
 		},
 	)
 	grpclog.SetLogger(log.New(os.Stderr, "grpc: ", log.LstdFlags))

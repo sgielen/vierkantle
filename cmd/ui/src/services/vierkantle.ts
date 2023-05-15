@@ -123,6 +123,14 @@ export interface FillInBoardResponse {
   progress: number;
 }
 
+export interface MarkWordTypeRequest {
+  word: string;
+  bonus: boolean;
+}
+
+export interface MarkWordTypeResponse {
+}
+
 export interface CreateTeamRequest {
   name: string;
 }
@@ -1230,6 +1238,80 @@ export const FillInBoardResponse = {
   },
 };
 
+function createBaseMarkWordTypeRequest(): MarkWordTypeRequest {
+  return { word: "", bonus: false };
+}
+
+export const MarkWordTypeRequest = {
+  encode(message: MarkWordTypeRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.word !== "") {
+      writer.uint32(10).string(message.word);
+    }
+    if (message.bonus === true) {
+      writer.uint32(16).bool(message.bonus);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MarkWordTypeRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMarkWordTypeRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.word = reader.string();
+          break;
+        case 2:
+          message.bonus = reader.bool();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<MarkWordTypeRequest>): MarkWordTypeRequest {
+    const message = createBaseMarkWordTypeRequest();
+    message.word = object.word ?? "";
+    message.bonus = object.bonus ?? false;
+    return message;
+  },
+};
+
+function createBaseMarkWordTypeResponse(): MarkWordTypeResponse {
+  return {};
+}
+
+export const MarkWordTypeResponse = {
+  encode(_: MarkWordTypeResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MarkWordTypeResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMarkWordTypeResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(_: DeepPartial<MarkWordTypeResponse>): MarkWordTypeResponse {
+    const message = createBaseMarkWordTypeResponse();
+    return message;
+  },
+};
+
 function createBaseCreateTeamRequest(): CreateTeamRequest {
   return { name: "" };
 }
@@ -1734,6 +1816,14 @@ export const VierkantleServiceDefinition = {
       responseStream: true,
       options: {},
     },
+    markWordType: {
+      name: "MarkWordType",
+      requestType: MarkWordTypeRequest,
+      requestStream: false,
+      responseType: MarkWordTypeResponse,
+      responseStream: false,
+      options: {},
+    },
     teamStream: {
       name: "TeamStream",
       requestType: TeamStreamClientMessage,
@@ -1776,6 +1866,10 @@ export interface VierkantleServiceImplementation<CallContextExt = {}> {
     request: FillInBoardRequest,
     context: CallContext & CallContextExt,
   ): ServerStreamingMethodResult<DeepPartial<FillInBoardResponse>>;
+  markWordType(
+    request: MarkWordTypeRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<MarkWordTypeResponse>>;
   teamStream(
     request: AsyncIterable<TeamStreamClientMessage>,
     context: CallContext & CallContextExt,
@@ -1813,6 +1907,10 @@ export interface VierkantleServiceClient<CallOptionsExt = {}> {
     request: DeepPartial<FillInBoardRequest>,
     options?: CallOptions & CallOptionsExt,
   ): AsyncIterable<FillInBoardResponse>;
+  markWordType(
+    request: DeepPartial<MarkWordTypeRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<MarkWordTypeResponse>;
   teamStream(
     request: AsyncIterable<DeepPartial<TeamStreamClientMessage>>,
     options?: CallOptions & CallOptionsExt,

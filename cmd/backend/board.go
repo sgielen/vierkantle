@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -72,6 +73,11 @@ func (s *vierkantleService) getDictionary() (dictionary.RWPrefixDictionary, erro
 			return nil, err
 		}
 	}
+	if s.forceWordTypeList != "" {
+		if err := dict.ReadForceTypeFromFile(s.forceWordTypeList); err != nil {
+			return nil, err
+		}
+	}
 	return dict, nil
 }
 
@@ -108,7 +114,7 @@ func (s *vierkantleService) SeedBoard(req *pb.SeedBoardRequest, stream pb.Vierka
 	if req.SeedWord != "" {
 		dict.AddWord(dictionary.WordReadResult{
 			Word: req.SeedWord,
-		}, dictionary.NormalWord, false)
+		}, dictionary.NormalWord, false, true)
 	}
 
 	var bestBoard *vierkantle.Board
@@ -233,4 +239,32 @@ func (s *vierkantleService) FillInBoard(req *pb.FillInBoardRequest, stream pb.Vi
 		Attempts: req.Attempts,
 		Progress: req.Attempts,
 	})
+}
+
+func (s *vierkantleService) MarkWordType(ctx context.Context, req *pb.MarkWordTypeRequest) (*pb.MarkWordTypeResponse, error) {
+	// This RPC requires login, a slight measure against abuse
+	ctx, err := grpcWebAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_, username, err := AuthUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("User %q marked word %q as bonus=%v", username, req.Word, req.Bonus)
+
+	if s.forceWordTypeList == "" {
+		return nil, fmt.Errorf("no force type word file set")
+	}
+
+	wordType := dictionary.NormalWord
+	if req.Bonus {
+		wordType = dictionary.BonusWord
+	}
+
+	if err := dictionary.AddForceTypeToFile(s.forceWordTypeList, req.Word, wordType); err != nil {
+		return nil, err
+	}
+	return &pb.MarkWordTypeResponse{}, nil
 }
