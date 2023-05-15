@@ -150,6 +150,13 @@
               </template>
             </q-card-section>
           </template>
+          <q-separator />
+          <q-card-section class="q-pa-md">
+            Krijg je er geen genoeg van? Morgen om 12:00 's middags is er weer
+            een nieuwe Vierkantle. Of speel in de tussentijd de <a
+            href="https://squaredle.app" target="_blank">Squaredle</a> (Engels),
+            waarop Vierkantle is gebaseerd!
+          </q-card-section>
         </q-card>
       </q-dialog>
 
