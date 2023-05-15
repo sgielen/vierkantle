@@ -266,8 +266,9 @@ const board = computed(() => {
 });
 
 const timeSpent = computed(() => {
-  const min = Math.floor(seconds.value / 60);
-  const sec = seconds.value % 60;
+  let sec = Math.floor(seconds.value);
+  const min = Math.floor(sec / 60);
+  sec = sec % 60;
   return min + ":" + sec.toFixed(0).padStart(2, "0");
 });
 
