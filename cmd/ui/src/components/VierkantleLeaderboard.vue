@@ -136,6 +136,13 @@ async function ensureItems({ from, to }: { from: number, to: number }): Promise<
   position: sticky;
   opacity: 1;
   z-index: 1;
+  background-color: white;
+}
+
+body.body--dark {
+  .thead-sticky tr > * {
+    background-color: var(--q-dark);
+  }
 }
 
 .thead-sticky tr:last-child > * {
