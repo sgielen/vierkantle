@@ -264,6 +264,7 @@ import VierkantleLeaderboard from 'src/components/VierkantleLeaderboard.vue';
 import { errorToString } from 'src/services/errors';
 import { confetti, ConfettiOptions } from 'tsparticles-confetti';
 import { useQuasar } from 'quasar';
+import { useWhoami } from 'src/services/whoami';
 
 const $q = useQuasar();
 const dark = computed({
@@ -300,7 +301,7 @@ const backendAddress = window.location.origin + "/api";
 const channel = createChannel(backendAddress);
 const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
 
-const username = ref<string>();
+const { username, updateWhoami } = useWhoami(client);
 
 const anyDialogOpen = computed(() => {
   return wordListOpen.value || multiplayerOpen.value || leaderboardOpen.value || shareOpen.value || loginOpen.value || registerOpen.value;
@@ -333,26 +334,8 @@ onMounted(async () => {
     error.value = errorToString(e);
   }
 
-  // Keep checking whether we're logged in (this also refreshes the cookie)
-  setInterval(sendWhoami, 60 * 1000);
-  await sendWhoami();
+  await updateWhoami();
 });
-
-async function sendWhoami(critical?: boolean) {
-  try {
-    const whoami = await client.whoami({});
-    username.value = whoami.username;
-  } catch(e) {
-    if (critical) {
-      username.value = undefined;
-    } else {
-      // This may be a temporary error, or a race condition with the
-      // finishLogin() RPC. Try whoami RPC again, but with critical=true, before
-      // setting username.value = undefined.
-      setTimeout(() => sendWhoami(true), 500);
-    }
-  }
-}
 
 const wordListOpen = ref(false);
 
@@ -630,7 +613,7 @@ async function register() {
       username: registerUsername.value.trim(),
       email: registerEmail.value.trim(),
     })
-    await sendWhoami();
+    await updateWhoami();
     loginOpen.value = false;
     leaderboardOpen.value = true;
 

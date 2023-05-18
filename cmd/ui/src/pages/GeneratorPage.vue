@@ -41,6 +41,14 @@
           </div>
           <q-separator class="q-ma-sm" />
 
+          <div class="q-ma-xs q-pa-xs" style="border: 1px solid rgb(255, 155, 111);" v-if="!username">
+            <strong>Let op: je bent niet ingelogd.</strong> Als je ingelogd
+            bent, dan onthoudt de generator alle woordtypes van woorden die je
+            hier aan- of uitvinkt, maar momenteel dus niet. Je kan inloggen op
+            de <a href="/">hoofdpagina</a> via het scorebord. Geen zorgen, de
+            generator onthoudt ondertussen waar je mee bezig was.
+          </div>
+
           <div v-if="loading" class="q-my-md q-mx-sm">
             <q-linear-progress
               :indeterminate="!loadingProgress"
@@ -88,6 +96,7 @@ import { QInput } from 'quasar';
 import { isAbortError, useUniqueCall } from 'src/services/abort';
 import { errorToString } from 'src/services/errors';
 import { useQuasar } from 'quasar';
+import { useWhoami } from 'src/services/whoami';
 
 const $q = useQuasar();
 const dark = computed({
@@ -99,7 +108,18 @@ const dark = computed({
   },
 });
 
+const backendAddress = window.location.origin + "/api";
+const channel = createChannel(backendAddress);
+const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
+const { username, updateWhoami } = useWhoami(client);
 const myName = useStorage<string | undefined>("generatorName", undefined);
+
+onMounted(async () => {
+  await updateWhoami();
+  if (!myName.value && username.value) {
+    myName.value = username.value;
+  }
+})
 
 function defaultBoard(): Board {
   const b: Board = {
@@ -144,9 +164,6 @@ const usage = computed(() => {
 const error = ref("");
 const loading = ref(false);
 const loadingProgress = ref(0);
-const backendAddress = window.location.origin + "/api";
-const channel = createChannel(backendAddress);
-const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
 
 const { newUniqueCall } = useUniqueCall();
 
