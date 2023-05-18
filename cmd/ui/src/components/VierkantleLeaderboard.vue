@@ -136,7 +136,6 @@ async function ensureItems({ from, to }: { from: number, to: number }): Promise<
   position: sticky;
   opacity: 1;
   z-index: 1;
-  background: white;
 }
 
 .thead-sticky tr:last-child > * {
@@ -145,6 +144,12 @@ async function ensureItems({ from, to }: { from: number, to: number }): Promise<
 
 .ourScore {
   background-color: lightgreen;
+}
+
+body.body--dark {
+  .ourScore {
+    background-color: darkgreen;
+  }
 }
 
 .anonymous {
