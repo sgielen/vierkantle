@@ -187,7 +187,7 @@
         <q-card style="width: 650px">
           <template v-if="loginStep == 1">
             <q-card-section>
-              <span class="text-h6">Inloggen</span>
+              <div class="text-h6">Inloggen</div>
               Je kan opnieuw inloggen op je account op twee manieren.
             </q-card-section>
             <q-separator />
@@ -206,13 +206,13 @@
           </template>
           <template v-else-if="loginStep == 2">
             <q-card-section>
-              <span class="text-h6">Inloggen</span>
+              <div class="text-h6">Inloggen</div>
               Je hebt een e-mail ontvangen met een link. Open deze link om weer in te loggen.
             </q-card-section>
           </template>
           <template v-else-if="loginStep == 3">
             <q-card-section>
-              <span class="text-h6">Inloggen</span>
+              <div class="text-h6">Inloggen</div>
               Je bent succesvol ingelogd als {{ username }}!
             </q-card-section>
           </template>
@@ -325,10 +325,6 @@ onMounted(async () => {
     if (!board_.value || boardLetters(board) != boardLetters(board_.value)) {
       board_.value = board;
       seconds.value = 0;
-    }
-    /* TODO: Remove */
-    else {
-      board_.value.name = boardResponse.name;
     }
   } catch(e) {
     error.value = errorToString(e);
