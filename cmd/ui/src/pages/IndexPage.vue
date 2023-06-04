@@ -254,7 +254,7 @@
 import VierkantleBoard from 'components/VierkantleBoard.vue';
 import { Board } from 'src/components/models';
 import { computed, onMounted, ref, reactive, watchEffect, watch } from 'vue';
-import { StorageSerializers, useStorage } from '@vueuse/core';
+import { StorageSerializers, useStorage, useMediaQuery } from '@vueuse/core';
 import { Multiplayer } from 'src/services/multiplayer';
 import VierkantleTop from 'src/components/VierkantleTop.vue';
 import { createChannel, createClient } from 'nice-grpc-web';
@@ -303,8 +303,20 @@ const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition
 
 const { username, updateWhoami } = useWhoami(client);
 
+const isWideScreen = useMediaQuery(`(min-width: 500px)`);
+
+const wordListDialogVisible = computed(() => {
+  // On wide screens, the word list dialog is never visible.
+  if (isWideScreen.value) {
+    return false;
+  }
+
+  // Otherwise, the word list dialog is visible depending on whether it's opened.
+  return wordListOpen.value;
+})
+
 const anyDialogOpen = computed(() => {
-  return wordListOpen.value || multiplayerOpen.value || leaderboardOpen.value || shareOpen.value || loginOpen.value || registerOpen.value;
+  return wordListDialogVisible.value || multiplayerOpen.value || leaderboardOpen.value || shareOpen.value || loginOpen.value || registerOpen.value;
 })
 
 onMounted(async () => {
