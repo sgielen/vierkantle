@@ -162,6 +162,21 @@
         </q-card>
       </q-dialog>
 
+      <q-dialog v-model="preDescriptionOpen" v-if="board?.preDescription">
+        <q-card style="width: 650px">
+          <q-card-section>
+            <span class="text-h6">Speciaal bord</span>
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="q-pa-md">
+            Het bord van vandaag is gemaakt door <strong>{{ board.madeBy }}</strong> en die
+            schrijft erbij:
+            <div class="q-ma-sm quote">{{ board.preDescription }}</div>
+            <q-btn color="primary" @click="preDescriptionOpen = false">Starten</q-btn>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+
       <q-dialog v-model="registerOpen">
         <q-card style="width: 650px">
           <q-card-section>
@@ -316,7 +331,7 @@ const wordListDialogVisible = computed(() => {
 })
 
 const anyDialogOpen = computed(() => {
-  return wordListDialogVisible.value || multiplayerOpen.value || leaderboardOpen.value || shareOpen.value || loginOpen.value || registerOpen.value;
+  return wordListDialogVisible.value || multiplayerOpen.value || leaderboardOpen.value || shareOpen.value || preDescriptionOpen.value || loginOpen.value || registerOpen.value;
 })
 
 onMounted(async () => {
@@ -342,8 +357,14 @@ onMounted(async () => {
     error.value = errorToString(e);
   }
 
+  if (board.value?.preDescription) {
+    preDescriptionOpen.value = true;
+  }
+
   await updateWhoami();
 });
+
+const preDescriptionOpen = ref(false);
 
 const wordListOpen = ref(false);
 

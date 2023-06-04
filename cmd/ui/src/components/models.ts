@@ -17,6 +17,7 @@ export interface Board {
   words: Record<string, WordInBoard>;
   madeBy?: string;
   description?: string;
+  preDescription?: string;
 }
 
 export interface CellState {
