@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dbmigrate
+  namespace: vierkantle
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: default
+        image: rg.nl-ams.scw.cloud/sc-ams-registry/vierkantle/dbmigrate:latest-main
+        imagePullPolicy: Always
+        command: ["dbmate", "--wait", "up"]
+        env:
+        - name: PG_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: vierkantle.vierkantle-database.credentials.postgresql.acid.zalan.do
+        - name: PG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: vierkantle.vierkantle-database.credentials.postgresql.acid.zalan.do
+        - name: PG_HOSTNAME
+          value: $(VIERKANTLE_DATABASE_SERVICE_HOST)
+        - name: PG_PORT
+          value: $(VIERKANTLE_DATABASE_SERVICE_PORT)
+        - name: PG_DATABASE
+          value: vierkantle
+        - name: DATABASE_URL
+          value: postgresql://$(PG_USERNAME):$(PG_PASSWORD)@$(PG_HOSTNAME):$(PG_PORT)/$(PG_DATABASE)?sslmode=require
+      imagePullSecrets:
+      - name: regcred
+      securityContext:
+        fsGroup: 65534
+        runAsGroup: 65534
+        runAsUser: 65534

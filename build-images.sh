@@ -31,6 +31,14 @@ if [ "$PUSH" = "1" ]; then
 fi
 popd
 
+pushd pkg/database
+docker build . \
+	-t "${IMAGE_BASENAME}dbmigrate:latest-${GIT_REF_NAME}" \
+	--platform "$PLATFORM"
+if [ "$PUSH" = "1" ]; then
+	docker push "${IMAGE_BASENAME}dbmigrate:latest-${GIT_REF_NAME}"
+fi
+
 for gobinary in backend; do
 	docker build . \
 		--target "$gobinary" \
@@ -42,6 +50,11 @@ for gobinary in backend; do
 done
 
 if [ "$DEPLOY" = "1" ]; then
+	kubectl delete job -n vierkantle dbmigrate || true
+	kubectl apply -f dbmigrate.yaml -n vierkantle
+	sleep 5
+	kubectl logs -f -n vierkantle job/dbmigrate
+
 	kubectl rollout restart deployment -n vierkantle ui
 	kubectl rollout restart deployment -n vierkantle backend
 fi
