@@ -31,7 +31,9 @@
           <q-separator class="q-ma-sm" />
           <div class="row q-gutter-sm q-ma-sm">
             <q-btn @click="download" color="primary">Download bord</q-btn>
+            <q-btn @click="addToQueue" color="primary">Voeg bord aan wachtrij toe</q-btn>
             <q-btn @click="chooseFile" color="primary">Upload bord</q-btn>
+            <q-btn @click="queueOpen = true" color="primary" v-if="whoami?.admin">Open wachtrij</q-btn>
             <q-input filled type="file" ref="qFile" v-model="file" v-show="false" />
           </div>
           <q-separator class="q-ma-sm" />
@@ -81,6 +83,33 @@
       </div>
     </q-page>
   </q-page-container>
+
+  <q-dialog v-model="queuedOpen">
+    <q-card style="width: 650px">
+      <q-card-section>
+        <span class="text-h6">Bord toegevoegd aan wachtrij!</span>
+      </q-card-section>
+      <q-separator />
+      <q-card-section class="q-pa-md">
+        <template v-if="error">
+          <span style="color: red">{{ error }}</span>
+        </template>
+        <template v-else>
+          Je bord is toegevoegd aan de wachtrij en heeft id {{ queueId }} gekregen. Daarnaast heeft Sjors een mailtje gekregen.
+          Bedankt voor het opsturen!
+        </template>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="queueOpen">
+    <BoardQueue
+      :backend="backendAddress"
+      :currentBoard="boardJson"
+      @open="openFromQueue"
+    />
+  </q-dialog>
+
 </template>
 
 <script setup lang="ts">
@@ -89,7 +118,7 @@ import { Board } from 'src/components/models';
 import { onMounted, ref, computed, watch } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createChannel, createClient } from 'nice-grpc-web';
-import { VierkantleServiceDefinition, VierkantleServiceClient } from '../services/vierkantle';
+import { VierkantleServiceDefinition, VierkantleServiceClient, GetBoardFromQueueResponse } from '../services/vierkantle';
 import WordList from 'src/components/WordList.vue';
 import LabelAutofit from 'src/components/LabelAutofit.vue';
 import { QInput } from 'quasar';
@@ -97,6 +126,7 @@ import { isAbortError, useUniqueCall } from 'src/services/abort';
 import { errorToString } from 'src/services/errors';
 import { useQuasar } from 'quasar';
 import { useWhoami } from 'src/services/whoami';
+import BoardQueue from 'src/components/BoardQueue.vue';
 
 const $q = useQuasar();
 const dark = computed({
@@ -111,7 +141,7 @@ const dark = computed({
 const backendAddress = window.location.origin + "/api";
 const channel = createChannel(backendAddress);
 const client: VierkantleServiceClient = createClient(VierkantleServiceDefinition, channel);
-const { username, updateWhoami } = useWhoami(client);
+const { username, whoami, updateWhoami } = useWhoami(client);
 const myName = useStorage<string | undefined>("generatorName", undefined);
 
 onMounted(async () => {
@@ -173,11 +203,15 @@ function reset() {
 
 const seedword = ref("");
 
-const boardFilename = computed(() => {
+const boardName = computed(() => {
   if (seedword.value) {
-    return seedword.value.trim().toLowerCase() + ".json";
+    return seedword.value.trim().toLowerCase();
   }
-  return new Date().toISOString().slice(0, 10) + ".json";
+  return new Date().toISOString().slice(0, 10);
+})
+
+const boardFilename = computed(() => {
+  return boardName.value + ".json";
 })
 
 function replaceBoardFromApi(newBoard: Uint8Array) {
@@ -222,7 +256,7 @@ async function fillIn() {
   error.value = "";
   try {
     const responses = client.fillInBoard({
-      board: new TextEncoder().encode(JSON.stringify(board.value, null, 0)),
+      board: boardJson.value,
       attempts: 10000,
     }, { signal: newUniqueCall() });
     for await (const response of responses) {
@@ -248,7 +282,7 @@ async function renewWords() {
   error.value = "";
   try {
     const boardResponse = await client.wordsForBoard({
-      board: new TextEncoder().encode(JSON.stringify(board.value, null, 0)),
+      board: boardJson.value,
     }, { signal: newUniqueCall() });
     replaceBoardFromApi(boardResponse.board);
   } catch(e) {
@@ -276,9 +310,13 @@ async function setWordBonus(word: string, bonus: boolean) {
   }
 }
 
+const boardJson = ref(new Uint8Array);
+watch(board, () => {
+  boardJson.value = new TextEncoder().encode(JSON.stringify(board.value, null, 0));
+}, { deep: true });
+
 function download() {
-  const json = JSON.stringify(board.value, null, 0);
-  const file = new File([json], boardFilename.value);
+  const file = new File([boardJson.value], boardFilename.value);
 
   const link = document.createElement("a");
   link.style.display = "none";
@@ -294,6 +332,30 @@ function download() {
     URL.revokeObjectURL(link.href);
     link.parentNode?.removeChild(link);
   }, 0);
+}
+
+const queuedOpen = ref(false);
+const queueId = ref<number>();
+
+async function addToQueue() {
+  try {
+    error.value = "";
+    const response = await client.addBoardToQueue({
+      boardName: boardName.value,
+      board: boardJson.value,
+    })
+    queueId.value = response.id;
+    queuedOpen.value = true;
+  } catch(e) {
+    error.value = errorToString(e);
+  }
+}
+
+const queueOpen = ref(false);
+
+function openFromQueue(newBoard: GetBoardFromQueueResponse) {
+  board.value = JSON.parse(new TextDecoder().decode(newBoard.board));
+  queueOpen.value = false;
 }
 
 const qFile = ref<QInput>()

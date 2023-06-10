@@ -4,6 +4,8 @@ package nl.vierkantle;
 
 option go_package = "github.com/sgielen/vierkantle/pkg/proto";
 
+import "google/protobuf/timestamp.proto";
+
 service VierkantleService {
   rpc GetBoard(GetBoardRequest) returns (GetBoardResponse) {}
 
@@ -21,6 +23,11 @@ service VierkantleService {
   rpc SeedBoard(SeedBoardRequest) returns (stream SeedBoardResponse) {}
   rpc FillInBoard(FillInBoardRequest) returns (stream FillInBoardResponse) {}
   rpc MarkWordType(MarkWordTypeRequest) returns (MarkWordTypeResponse) {}
+  rpc AddBoardToQueue(AddBoardToQueueRequest) returns (AddBoardToQueueResponse) {}
+  rpc ListBoardQueue(ListBoardQueueRequest) returns (ListBoardQueueResponse) {}
+  rpc GetBoardFromQueue(GetBoardFromQueueRequest) returns (GetBoardFromQueueResponse) {}
+  rpc UpdateBoardInQueue(UpdateBoardInQueueRequest) returns (UpdateBoardInQueueResponse) {}
+  rpc RemoveBoardsFromQueue(RemoveBoardsFromQueueRequest) returns (RemoveBoardsFromQueueResponse) {}
 
   rpc TeamStream(stream TeamStreamClientMessage) returns (stream TeamStreamServerMessage) {}
 }
@@ -70,6 +77,7 @@ message WhoamiRequest {
 
 message WhoamiResponse {
   string username = 1;
+  bool admin = 2;
 }
 
 message StartLoginRequest {
@@ -143,6 +151,51 @@ message MarkWordTypeRequest {
 }
 
 message MarkWordTypeResponse {}
+
+message AddBoardToQueueRequest {
+  string board_name = 1;
+  bytes board = 2;
+}
+
+message AddBoardToQueueResponse {
+  int64 id = 1;
+}
+
+message ListBoardQueueRequest {}
+
+message ListBoardQueueResponse {
+  message Board {
+    int64 id = 1;
+    int64 user_id = 2;
+    string username = 3;
+    string board_name = 4;
+    google.protobuf.Timestamp added_at = 5;
+  }
+  repeated Board boards = 1;
+}
+
+message GetBoardFromQueueRequest {
+  int64 id = 1;
+}
+
+message GetBoardFromQueueResponse {
+  string board_name = 1;
+  bytes board = 2;
+}
+
+message UpdateBoardInQueueRequest {
+  int64 id = 1;
+  string board_name = 2;
+  bytes board = 3;
+}
+
+message UpdateBoardInQueueResponse {}
+
+message RemoveBoardsFromQueueRequest {
+  repeated int64 ids = 1;
+}
+
+message RemoveBoardsFromQueueResponse {}
 
 message CreateTeamRequest {
   string name = 1;

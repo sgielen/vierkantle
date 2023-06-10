@@ -14,6 +14,7 @@
   "dependencies": {
     "@improbable-eng/grpc-web": "^0.15.0",
     "@quasar/extras": "^1.16.4",
+    "@transcend-io/conflux": "^4.0.3",
     "@vueuse/core": "^10.1.2",
     "nice-grpc-web": "^3.3.0",
     "protobufjs": "^7.2.3",

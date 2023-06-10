@@ -52,11 +52,21 @@ func (s *vierkantleService) Whoami(ctx context.Context, req *pb.WhoamiRequest) (
 	if err != nil {
 		return nil, err
 	}
+	var admin bool
+	if err := database.RunROTransaction(ctx, pgx.RepeatableRead, func(q *gendb.Queries) error {
+		user, err := q.GetUserById(ctx, userId)
+		admin = user.IsAdmin
+		return err
+	}); err != nil {
+		log.Printf("Failed to get user admin status: %+v", err)
+		admin = false
+	}
 	if err := SetCookie(ctx, userId, username); err != nil {
 		return nil, err
 	}
 	return &pb.WhoamiResponse{
 		Username: username,
+		Admin:    admin,
 	}, err
 }
 

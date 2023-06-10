@@ -1,6 +1,8 @@
 /* eslint-disable */
+import Long from "long";
 import type { CallContext, CallOptions } from "nice-grpc-common";
-import * as _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
+import { Timestamp } from "./google/protobuf/timestamp";
 
 export const protobufPackage = "nl.vierkantle";
 
@@ -55,6 +57,7 @@ export interface WhoamiRequest {
 
 export interface WhoamiResponse {
   username: string;
+  admin: boolean;
 }
 
 export interface StartLoginRequest {
@@ -129,6 +132,55 @@ export interface MarkWordTypeRequest {
 }
 
 export interface MarkWordTypeResponse {
+}
+
+export interface AddBoardToQueueRequest {
+  boardName: string;
+  board: Uint8Array;
+}
+
+export interface AddBoardToQueueResponse {
+  id: number;
+}
+
+export interface ListBoardQueueRequest {
+}
+
+export interface ListBoardQueueResponse {
+  boards: ListBoardQueueResponse_Board[];
+}
+
+export interface ListBoardQueueResponse_Board {
+  id: number;
+  userId: number;
+  username: string;
+  boardName: string;
+  addedAt: Date | undefined;
+}
+
+export interface GetBoardFromQueueRequest {
+  id: number;
+}
+
+export interface GetBoardFromQueueResponse {
+  boardName: string;
+  board: Uint8Array;
+}
+
+export interface UpdateBoardInQueueRequest {
+  id: number;
+  boardName: string;
+  board: Uint8Array;
+}
+
+export interface UpdateBoardInQueueResponse {
+}
+
+export interface RemoveBoardsFromQueueRequest {
+  ids: number[];
+}
+
+export interface RemoveBoardsFromQueueResponse {
 }
 
 export interface CreateTeamRequest {
@@ -628,13 +680,16 @@ export const WhoamiRequest = {
 };
 
 function createBaseWhoamiResponse(): WhoamiResponse {
-  return { username: "" };
+  return { username: "", admin: false };
 }
 
 export const WhoamiResponse = {
   encode(message: WhoamiResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.username !== "") {
       writer.uint32(10).string(message.username);
+    }
+    if (message.admin === true) {
+      writer.uint32(16).bool(message.admin);
     }
     return writer;
   },
@@ -649,6 +704,9 @@ export const WhoamiResponse = {
         case 1:
           message.username = reader.string();
           break;
+        case 2:
+          message.admin = reader.bool();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -660,6 +718,7 @@ export const WhoamiResponse = {
   fromPartial(object: DeepPartial<WhoamiResponse>): WhoamiResponse {
     const message = createBaseWhoamiResponse();
     message.username = object.username ?? "";
+    message.admin = object.admin ?? false;
     return message;
   },
 };
@@ -1312,6 +1371,457 @@ export const MarkWordTypeResponse = {
   },
 };
 
+function createBaseAddBoardToQueueRequest(): AddBoardToQueueRequest {
+  return { boardName: "", board: new Uint8Array() };
+}
+
+export const AddBoardToQueueRequest = {
+  encode(message: AddBoardToQueueRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.boardName !== "") {
+      writer.uint32(10).string(message.boardName);
+    }
+    if (message.board.length !== 0) {
+      writer.uint32(18).bytes(message.board);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AddBoardToQueueRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAddBoardToQueueRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.boardName = reader.string();
+          break;
+        case 2:
+          message.board = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<AddBoardToQueueRequest>): AddBoardToQueueRequest {
+    const message = createBaseAddBoardToQueueRequest();
+    message.boardName = object.boardName ?? "";
+    message.board = object.board ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseAddBoardToQueueResponse(): AddBoardToQueueResponse {
+  return { id: 0 };
+}
+
+export const AddBoardToQueueResponse = {
+  encode(message: AddBoardToQueueResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).int64(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AddBoardToQueueResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAddBoardToQueueResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.id = longToNumber(reader.int64() as Long);
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<AddBoardToQueueResponse>): AddBoardToQueueResponse {
+    const message = createBaseAddBoardToQueueResponse();
+    message.id = object.id ?? 0;
+    return message;
+  },
+};
+
+function createBaseListBoardQueueRequest(): ListBoardQueueRequest {
+  return {};
+}
+
+export const ListBoardQueueRequest = {
+  encode(_: ListBoardQueueRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListBoardQueueRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListBoardQueueRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(_: DeepPartial<ListBoardQueueRequest>): ListBoardQueueRequest {
+    const message = createBaseListBoardQueueRequest();
+    return message;
+  },
+};
+
+function createBaseListBoardQueueResponse(): ListBoardQueueResponse {
+  return { boards: [] };
+}
+
+export const ListBoardQueueResponse = {
+  encode(message: ListBoardQueueResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.boards) {
+      ListBoardQueueResponse_Board.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListBoardQueueResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListBoardQueueResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.boards.push(ListBoardQueueResponse_Board.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<ListBoardQueueResponse>): ListBoardQueueResponse {
+    const message = createBaseListBoardQueueResponse();
+    message.boards = object.boards?.map((e) => ListBoardQueueResponse_Board.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseListBoardQueueResponse_Board(): ListBoardQueueResponse_Board {
+  return { id: 0, userId: 0, username: "", boardName: "", addedAt: undefined };
+}
+
+export const ListBoardQueueResponse_Board = {
+  encode(message: ListBoardQueueResponse_Board, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).int64(message.id);
+    }
+    if (message.userId !== 0) {
+      writer.uint32(16).int64(message.userId);
+    }
+    if (message.username !== "") {
+      writer.uint32(26).string(message.username);
+    }
+    if (message.boardName !== "") {
+      writer.uint32(34).string(message.boardName);
+    }
+    if (message.addedAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.addedAt), writer.uint32(42).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListBoardQueueResponse_Board {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListBoardQueueResponse_Board();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.id = longToNumber(reader.int64() as Long);
+          break;
+        case 2:
+          message.userId = longToNumber(reader.int64() as Long);
+          break;
+        case 3:
+          message.username = reader.string();
+          break;
+        case 4:
+          message.boardName = reader.string();
+          break;
+        case 5:
+          message.addedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<ListBoardQueueResponse_Board>): ListBoardQueueResponse_Board {
+    const message = createBaseListBoardQueueResponse_Board();
+    message.id = object.id ?? 0;
+    message.userId = object.userId ?? 0;
+    message.username = object.username ?? "";
+    message.boardName = object.boardName ?? "";
+    message.addedAt = object.addedAt ?? undefined;
+    return message;
+  },
+};
+
+function createBaseGetBoardFromQueueRequest(): GetBoardFromQueueRequest {
+  return { id: 0 };
+}
+
+export const GetBoardFromQueueRequest = {
+  encode(message: GetBoardFromQueueRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).int64(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetBoardFromQueueRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetBoardFromQueueRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.id = longToNumber(reader.int64() as Long);
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<GetBoardFromQueueRequest>): GetBoardFromQueueRequest {
+    const message = createBaseGetBoardFromQueueRequest();
+    message.id = object.id ?? 0;
+    return message;
+  },
+};
+
+function createBaseGetBoardFromQueueResponse(): GetBoardFromQueueResponse {
+  return { boardName: "", board: new Uint8Array() };
+}
+
+export const GetBoardFromQueueResponse = {
+  encode(message: GetBoardFromQueueResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.boardName !== "") {
+      writer.uint32(10).string(message.boardName);
+    }
+    if (message.board.length !== 0) {
+      writer.uint32(18).bytes(message.board);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetBoardFromQueueResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetBoardFromQueueResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.boardName = reader.string();
+          break;
+        case 2:
+          message.board = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<GetBoardFromQueueResponse>): GetBoardFromQueueResponse {
+    const message = createBaseGetBoardFromQueueResponse();
+    message.boardName = object.boardName ?? "";
+    message.board = object.board ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseUpdateBoardInQueueRequest(): UpdateBoardInQueueRequest {
+  return { id: 0, boardName: "", board: new Uint8Array() };
+}
+
+export const UpdateBoardInQueueRequest = {
+  encode(message: UpdateBoardInQueueRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).int64(message.id);
+    }
+    if (message.boardName !== "") {
+      writer.uint32(18).string(message.boardName);
+    }
+    if (message.board.length !== 0) {
+      writer.uint32(26).bytes(message.board);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateBoardInQueueRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateBoardInQueueRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.id = longToNumber(reader.int64() as Long);
+          break;
+        case 2:
+          message.boardName = reader.string();
+          break;
+        case 3:
+          message.board = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<UpdateBoardInQueueRequest>): UpdateBoardInQueueRequest {
+    const message = createBaseUpdateBoardInQueueRequest();
+    message.id = object.id ?? 0;
+    message.boardName = object.boardName ?? "";
+    message.board = object.board ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseUpdateBoardInQueueResponse(): UpdateBoardInQueueResponse {
+  return {};
+}
+
+export const UpdateBoardInQueueResponse = {
+  encode(_: UpdateBoardInQueueResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateBoardInQueueResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateBoardInQueueResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(_: DeepPartial<UpdateBoardInQueueResponse>): UpdateBoardInQueueResponse {
+    const message = createBaseUpdateBoardInQueueResponse();
+    return message;
+  },
+};
+
+function createBaseRemoveBoardsFromQueueRequest(): RemoveBoardsFromQueueRequest {
+  return { ids: [] };
+}
+
+export const RemoveBoardsFromQueueRequest = {
+  encode(message: RemoveBoardsFromQueueRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    writer.uint32(10).fork();
+    for (const v of message.ids) {
+      writer.int64(v);
+    }
+    writer.ldelim();
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): RemoveBoardsFromQueueRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRemoveBoardsFromQueueRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if ((tag & 7) === 2) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.ids.push(longToNumber(reader.int64() as Long));
+            }
+          } else {
+            message.ids.push(longToNumber(reader.int64() as Long));
+          }
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<RemoveBoardsFromQueueRequest>): RemoveBoardsFromQueueRequest {
+    const message = createBaseRemoveBoardsFromQueueRequest();
+    message.ids = object.ids?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseRemoveBoardsFromQueueResponse(): RemoveBoardsFromQueueResponse {
+  return {};
+}
+
+export const RemoveBoardsFromQueueResponse = {
+  encode(_: RemoveBoardsFromQueueResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): RemoveBoardsFromQueueResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRemoveBoardsFromQueueResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(_: DeepPartial<RemoveBoardsFromQueueResponse>): RemoveBoardsFromQueueResponse {
+    const message = createBaseRemoveBoardsFromQueueResponse();
+    return message;
+  },
+};
+
 function createBaseCreateTeamRequest(): CreateTeamRequest {
   return { name: "" };
 }
@@ -1824,6 +2334,46 @@ export const VierkantleServiceDefinition = {
       responseStream: false,
       options: {},
     },
+    addBoardToQueue: {
+      name: "AddBoardToQueue",
+      requestType: AddBoardToQueueRequest,
+      requestStream: false,
+      responseType: AddBoardToQueueResponse,
+      responseStream: false,
+      options: {},
+    },
+    listBoardQueue: {
+      name: "ListBoardQueue",
+      requestType: ListBoardQueueRequest,
+      requestStream: false,
+      responseType: ListBoardQueueResponse,
+      responseStream: false,
+      options: {},
+    },
+    getBoardFromQueue: {
+      name: "GetBoardFromQueue",
+      requestType: GetBoardFromQueueRequest,
+      requestStream: false,
+      responseType: GetBoardFromQueueResponse,
+      responseStream: false,
+      options: {},
+    },
+    updateBoardInQueue: {
+      name: "UpdateBoardInQueue",
+      requestType: UpdateBoardInQueueRequest,
+      requestStream: false,
+      responseType: UpdateBoardInQueueResponse,
+      responseStream: false,
+      options: {},
+    },
+    removeBoardsFromQueue: {
+      name: "RemoveBoardsFromQueue",
+      requestType: RemoveBoardsFromQueueRequest,
+      requestStream: false,
+      responseType: RemoveBoardsFromQueueResponse,
+      responseStream: false,
+      options: {},
+    },
     teamStream: {
       name: "TeamStream",
       requestType: TeamStreamClientMessage,
@@ -1870,6 +2420,26 @@ export interface VierkantleServiceImplementation<CallContextExt = {}> {
     request: MarkWordTypeRequest,
     context: CallContext & CallContextExt,
   ): Promise<DeepPartial<MarkWordTypeResponse>>;
+  addBoardToQueue(
+    request: AddBoardToQueueRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<AddBoardToQueueResponse>>;
+  listBoardQueue(
+    request: ListBoardQueueRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<ListBoardQueueResponse>>;
+  getBoardFromQueue(
+    request: GetBoardFromQueueRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<GetBoardFromQueueResponse>>;
+  updateBoardInQueue(
+    request: UpdateBoardInQueueRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<UpdateBoardInQueueResponse>>;
+  removeBoardsFromQueue(
+    request: RemoveBoardsFromQueueRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<RemoveBoardsFromQueueResponse>>;
   teamStream(
     request: AsyncIterable<TeamStreamClientMessage>,
     context: CallContext & CallContextExt,
@@ -1911,11 +2481,50 @@ export interface VierkantleServiceClient<CallOptionsExt = {}> {
     request: DeepPartial<MarkWordTypeRequest>,
     options?: CallOptions & CallOptionsExt,
   ): Promise<MarkWordTypeResponse>;
+  addBoardToQueue(
+    request: DeepPartial<AddBoardToQueueRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<AddBoardToQueueResponse>;
+  listBoardQueue(
+    request: DeepPartial<ListBoardQueueRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<ListBoardQueueResponse>;
+  getBoardFromQueue(
+    request: DeepPartial<GetBoardFromQueueRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<GetBoardFromQueueResponse>;
+  updateBoardInQueue(
+    request: DeepPartial<UpdateBoardInQueueRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<UpdateBoardInQueueResponse>;
+  removeBoardsFromQueue(
+    request: DeepPartial<RemoveBoardsFromQueueRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<RemoveBoardsFromQueueResponse>;
   teamStream(
     request: AsyncIterable<DeepPartial<TeamStreamClientMessage>>,
     options?: CallOptions & CallOptionsExt,
   ): AsyncIterable<TeamStreamServerMessage>;
 }
+
+declare var self: any | undefined;
+declare var window: any | undefined;
+declare var global: any | undefined;
+var globalThis: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
@@ -1923,5 +2532,29 @@ export type DeepPartial<T> = T extends Builtin ? T
   : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = date.getTime() / 1_000;
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = t.seconds * 1_000;
+  millis += t.nanos / 1_000_000;
+  return new Date(millis);
+}
+
+function longToNumber(long: Long): number {
+  if (long.gt(Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  return long.toNumber();
+}
+
+if (_m0.util.Long !== Long) {
+  _m0.util.Long = Long as any;
+  _m0.configure();
+}
 
 export type ServerStreamingMethodResult<Response> = { [Symbol.asyncIterator](): AsyncIterator<Response, void> };

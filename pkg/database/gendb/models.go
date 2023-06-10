@@ -9,6 +9,15 @@ import (
 	"time"
 )
 
+type VierkantleBoardQueue struct {
+	ID        int64
+	UserID    int64
+	BoardName string
+	Board     []byte
+	AddedAt   time.Time
+	RemovedAt sql.NullTime
+}
+
 type VierkantleSchemaMigration struct {
 	Version string
 }
@@ -30,4 +39,5 @@ type VierkantleUser struct {
 	Email        sql.NullString
 	LastLoginAt  sql.NullTime
 	RegisteredAt time.Time
+	IsAdmin      bool
 }

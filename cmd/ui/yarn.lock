@@ -7,6 +7,14 @@
   resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.22.5.tgz#721fd042f3ce1896238cf1b341c77eb7dee7dbea"
   integrity sha512-DFZMC9LJUG9PLOclRC32G63UXwzqS2koQC8dkx+PLdmt1xSePYpbT/NbsrJy8Q/muXz7o/h/d4A7Fuyixm559Q==
 
+"@babel/runtime-corejs3@^7.18.3":
+  version "7.22.5"
+  resolved "https://registry.yarnpkg.com/@babel/runtime-corejs3/-/runtime-corejs3-7.22.5.tgz#bbc769b48edb2bdfd404b65ad1fc3952bf33e3c2"
+  integrity sha512-TNPDN6aBFaUox2Lu+H/Y1dKKQgr4ucz/FGyCz67RVYLsBpVpUFf1dDngzg+Od8aqbrqwyztkaZjtWCZEUOT8zA==
+  dependencies:
+    core-js-pure "^3.30.2"
+    regenerator-runtime "^0.13.11"
+
 "@esbuild/linux-loong64@0.14.54":
   version "0.14.54"
   resolved "https://registry.yarnpkg.com/@esbuild/linux-loong64/-/linux-loong64-0.14.54.tgz#de2a4be678bd4d0d1ffbb86e6de779cde5999028"
@@ -287,6 +295,16 @@
   dependencies:
     estree-walker "^2.0.1"
     picomatch "^2.2.2"
+
+"@transcend-io/conflux@^4.0.3":
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/@transcend-io/conflux/-/conflux-4.0.3.tgz#466cc7d53971b27e28c0bf27d53d43155a6d280a"
+  integrity sha512-HC6fJN9AOLhbqDeH6Vs2P6ANOZOOsdY/MOuTjd9Rl9pzLDnKVeW8x4bhCXF0yyHyADUqGMfljOE6JgkLgwkUiA==
+  dependencies:
+    "@babel/runtime-corejs3" "^7.18.3"
+    jsbi "^3.2.5"
+    pako "^1.0.11"
+    web-streams-polyfill "^3.2.1"
 
 "@types/body-parser@*":
   version "1.19.2"
@@ -1045,6 +1063,11 @@ cookie@0.5.0:
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.5.0.tgz#d1f5d71adec6558c58f389987c366aa47e994f8b"
   integrity sha512-YZ3GUyn/o8gfKJlnlX7g7xq4gyO6OSuhGPKaaGssGB2qgDUS0gPgtTvoyZLTt9Ab6dC4hfc9dV5arkvc/OCmrw==
+
+core-js-pure@^3.30.2:
+  version "3.30.2"
+  resolved "https://registry.yarnpkg.com/core-js-pure/-/core-js-pure-3.30.2.tgz#005a82551f4af3250dcfb46ed360fad32ced114e"
+  integrity sha512-p/npFUJXXBkCCTIlEGBdghofn00jWG6ZOtdoIXSJmAu2QBvN0IqpZXWweOytcwE6cfx8ZvVUy1vw8zxhe4Y2vg==
 
 core-util-is@~1.0.0:
   version "1.0.3"
@@ -2113,6 +2136,11 @@ js-yaml@^4.1.0:
   dependencies:
     argparse "^2.0.1"
 
+jsbi@^3.2.5:
+  version "3.2.5"
+  resolved "https://registry.yarnpkg.com/jsbi/-/jsbi-3.2.5.tgz#b37bb90e0e5c2814c1c2a1bcd8c729888a2e37d6"
+  integrity sha512-aBE4n43IPvjaddScbvWRA2YlTzKEynHzu7MqOyTipdHucf/VxS63ViCjxYRg86M8Rxwbt/GfzHl1kKERkt45fQ==
+
 json-schema-traverse@^0.4.1:
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/json-schema-traverse/-/json-schema-traverse-0.4.1.tgz#69f6a87d9513ab8bb8fe63bdb0979c448e684660"
@@ -2493,6 +2521,11 @@ p-locate@^5.0.0:
   dependencies:
     p-limit "^3.0.2"
 
+pako@^1.0.11:
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.11.tgz#6c9599d340d54dfd3946380252a35705a6b992bf"
+  integrity sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==
+
 param-case@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/param-case/-/param-case-2.1.1.tgz#df94fd8cf6531ecf75e6bef9a0858fbc72be2247"
@@ -2694,6 +2727,11 @@ readdirp@~3.6.0:
   integrity sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==
   dependencies:
     picomatch "^2.2.1"
+
+regenerator-runtime@^0.13.11:
+  version "0.13.11"
+  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.11.tgz#f6dca3e7ceec20590d07ada785636a90cdca17f9"
+  integrity sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==
 
 register-service-worker@^1.7.2:
   version "1.7.2"
@@ -3372,6 +3410,11 @@ wcwidth@^1.0.1:
   integrity sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==
   dependencies:
     defaults "^1.0.3"
+
+web-streams-polyfill@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/web-streams-polyfill/-/web-streams-polyfill-3.2.1.tgz#71c2718c52b45fd49dbeee88634b3a60ceab42a6"
+  integrity sha512-e0MO3wdXWKrLbL0DgGnUV7WHVuw9OUvL4hjgnPkIeEvESk74gAITi5G606JtZPp39cd8HA9VQzCIvA49LpPN5Q==
 
 webpack-merge@^5.8.0:
   version "5.8.0"

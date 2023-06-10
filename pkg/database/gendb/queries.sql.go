@@ -8,7 +8,41 @@ package gendb
 import (
 	"context"
 	"database/sql"
+	"time"
 )
+
+const addBoardToQueue = `-- name: AddBoardToQueue :one
+INSERT INTO vierkantle.board_queue (user_id, board, board_name, added_at) VALUES ($1, $2, $3, NOW()) RETURNING id
+`
+
+type AddBoardToQueueParams struct {
+	UserID    int64
+	Board     []byte
+	BoardName string
+}
+
+func (q *Queries) AddBoardToQueue(ctx context.Context, arg AddBoardToQueueParams) (int64, error) {
+	row := q.db.QueryRow(ctx, addBoardToQueue, arg.UserID, arg.Board, arg.BoardName)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const getBoardFromQueue = `-- name: GetBoardFromQueue :one
+SELECT board_name, board FROM vierkantle.board_queue WHERE id=$1
+`
+
+type GetBoardFromQueueRow struct {
+	BoardName string
+	Board     []byte
+}
+
+func (q *Queries) GetBoardFromQueue(ctx context.Context, id int64) (GetBoardFromQueueRow, error) {
+	row := q.db.QueryRow(ctx, getBoardFromQueue, id)
+	var i GetBoardFromQueueRow
+	err := row.Scan(&i.BoardName, &i.Board)
+	return i, err
+}
 
 const getMyScore = `-- name: GetMyScore :one
 SELECT my_score.team_size, my_score.words, my_score.seconds, (
@@ -98,6 +132,23 @@ func (q *Queries) GetScores(ctx context.Context, arg GetScoresParams) ([]GetScor
 	return items, nil
 }
 
+const getUserById = `-- name: GetUserById :one
+SELECT username, email, is_admin FROM vierkantle.users WHERE id=$1
+`
+
+type GetUserByIdRow struct {
+	Username string
+	Email    sql.NullString
+	IsAdmin  bool
+}
+
+func (q *Queries) GetUserById(ctx context.Context, id int64) (GetUserByIdRow, error) {
+	row := q.db.QueryRow(ctx, getUserById, id)
+	var i GetUserByIdRow
+	err := row.Scan(&i.Username, &i.Email, &i.IsAdmin)
+	return i, err
+}
+
 const getUsersWithEmailOrName = `-- name: GetUsersWithEmailOrName :many
 SELECT id, username, email FROM vierkantle.users WHERE username=$1 OR email=$2
 `
@@ -123,6 +174,50 @@ func (q *Queries) GetUsersWithEmailOrName(ctx context.Context, arg GetUsersWithE
 	for rows.Next() {
 		var i GetUsersWithEmailOrNameRow
 		if err := rows.Scan(&i.ID, &i.Username, &i.Email); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listBoardQueue = `-- name: ListBoardQueue :many
+SELECT board_queue.id, user_id, users.username, board_name, added_at, removed_at
+FROM vierkantle.board_queue
+JOIN vierkantle.users ON board_queue.user_id=users.id
+WHERE removed_at IS NULL
+ORDER BY board_queue.board_name ASC, board_queue.id ASC
+`
+
+type ListBoardQueueRow struct {
+	ID        int64
+	UserID    int64
+	Username  string
+	BoardName string
+	AddedAt   time.Time
+	RemovedAt sql.NullTime
+}
+
+func (q *Queries) ListBoardQueue(ctx context.Context) ([]ListBoardQueueRow, error) {
+	rows, err := q.db.Query(ctx, listBoardQueue)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListBoardQueueRow
+	for rows.Next() {
+		var i ListBoardQueueRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Username,
+			&i.BoardName,
+			&i.AddedAt,
+			&i.RemovedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -161,6 +256,15 @@ func (q *Queries) RegisterUser(ctx context.Context, arg RegisterUserParams) (int
 	return id, err
 }
 
+const removeBoardsFromQueue = `-- name: RemoveBoardsFromQueue :exec
+UPDATE vierkantle.board_queue SET removed_at=NOW() WHERE id = ANY($1::bigint[])
+`
+
+func (q *Queries) RemoveBoardsFromQueue(ctx context.Context, boardIds []int64) error {
+	_, err := q.db.Exec(ctx, removeBoardsFromQueue, boardIds)
+	return err
+}
+
 const setScore = `-- name: SetScore :exec
 INSERT INTO vierkantle.scores (board_name, anonymous_id, user_id, team_size, words, seconds, started_at, updated_at)
 VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
@@ -185,5 +289,20 @@ func (q *Queries) SetScore(ctx context.Context, arg SetScoreParams) error {
 		arg.Words,
 		arg.Seconds,
 	)
+	return err
+}
+
+const updateBoardInQueue = `-- name: UpdateBoardInQueue :exec
+UPDATE vierkantle.board_queue SET board=$2, board_name=$3 WHERE id=$1
+`
+
+type UpdateBoardInQueueParams struct {
+	ID        int64
+	Board     []byte
+	BoardName string
+}
+
+func (q *Queries) UpdateBoardInQueue(ctx context.Context, arg UpdateBoardInQueueParams) error {
+	_, err := q.db.Exec(ctx, updateBoardInQueue, arg.ID, arg.Board, arg.BoardName)
 	return err
 }

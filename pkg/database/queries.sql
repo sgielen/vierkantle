@@ -32,3 +32,25 @@ UPDATE vierkantle.users SET last_login_at=NOW() WHERE id=$1 RETURNING username;
 
 -- name: GetUsersWithEmailOrName :many
 SELECT id, username, email FROM vierkantle.users WHERE username=$1 OR email=$2;
+
+-- name: GetUserById :one
+SELECT username, email, is_admin FROM vierkantle.users WHERE id=$1;
+
+-- name: AddBoardToQueue :one
+INSERT INTO vierkantle.board_queue (user_id, board, board_name, added_at) VALUES ($1, $2, $3, NOW()) RETURNING id;
+
+-- name: ListBoardQueue :many
+SELECT board_queue.id, user_id, users.username, board_name, added_at, removed_at
+FROM vierkantle.board_queue
+JOIN vierkantle.users ON board_queue.user_id=users.id
+WHERE removed_at IS NULL
+ORDER BY board_queue.board_name ASC, board_queue.id ASC;
+
+-- name: UpdateBoardInQueue :exec
+UPDATE vierkantle.board_queue SET board=$2, board_name=$3 WHERE id=$1;
+
+-- name: GetBoardFromQueue :one
+SELECT board_name, board FROM vierkantle.board_queue WHERE id=$1;
+
+-- name: RemoveBoardsFromQueue :exec
+UPDATE vierkantle.board_queue SET removed_at=NOW() WHERE id = ANY(sqlc.arg(board_ids)::bigint[]);

@@ -31,6 +31,11 @@ type VierkantleServiceClient interface {
 	SeedBoard(ctx context.Context, in *SeedBoardRequest, opts ...grpc.CallOption) (VierkantleService_SeedBoardClient, error)
 	FillInBoard(ctx context.Context, in *FillInBoardRequest, opts ...grpc.CallOption) (VierkantleService_FillInBoardClient, error)
 	MarkWordType(ctx context.Context, in *MarkWordTypeRequest, opts ...grpc.CallOption) (*MarkWordTypeResponse, error)
+	AddBoardToQueue(ctx context.Context, in *AddBoardToQueueRequest, opts ...grpc.CallOption) (*AddBoardToQueueResponse, error)
+	ListBoardQueue(ctx context.Context, in *ListBoardQueueRequest, opts ...grpc.CallOption) (*ListBoardQueueResponse, error)
+	GetBoardFromQueue(ctx context.Context, in *GetBoardFromQueueRequest, opts ...grpc.CallOption) (*GetBoardFromQueueResponse, error)
+	UpdateBoardInQueue(ctx context.Context, in *UpdateBoardInQueueRequest, opts ...grpc.CallOption) (*UpdateBoardInQueueResponse, error)
+	RemoveBoardsFromQueue(ctx context.Context, in *RemoveBoardsFromQueueRequest, opts ...grpc.CallOption) (*RemoveBoardsFromQueueResponse, error)
 	TeamStream(ctx context.Context, opts ...grpc.CallOption) (VierkantleService_TeamStreamClient, error)
 }
 
@@ -196,6 +201,51 @@ func (c *vierkantleServiceClient) MarkWordType(ctx context.Context, in *MarkWord
 	return out, nil
 }
 
+func (c *vierkantleServiceClient) AddBoardToQueue(ctx context.Context, in *AddBoardToQueueRequest, opts ...grpc.CallOption) (*AddBoardToQueueResponse, error) {
+	out := new(AddBoardToQueueResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/AddBoardToQueue", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vierkantleServiceClient) ListBoardQueue(ctx context.Context, in *ListBoardQueueRequest, opts ...grpc.CallOption) (*ListBoardQueueResponse, error) {
+	out := new(ListBoardQueueResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/ListBoardQueue", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vierkantleServiceClient) GetBoardFromQueue(ctx context.Context, in *GetBoardFromQueueRequest, opts ...grpc.CallOption) (*GetBoardFromQueueResponse, error) {
+	out := new(GetBoardFromQueueResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/GetBoardFromQueue", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vierkantleServiceClient) UpdateBoardInQueue(ctx context.Context, in *UpdateBoardInQueueRequest, opts ...grpc.CallOption) (*UpdateBoardInQueueResponse, error) {
+	out := new(UpdateBoardInQueueResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/UpdateBoardInQueue", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vierkantleServiceClient) RemoveBoardsFromQueue(ctx context.Context, in *RemoveBoardsFromQueueRequest, opts ...grpc.CallOption) (*RemoveBoardsFromQueueResponse, error) {
+	out := new(RemoveBoardsFromQueueResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/RemoveBoardsFromQueue", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *vierkantleServiceClient) TeamStream(ctx context.Context, opts ...grpc.CallOption) (VierkantleService_TeamStreamClient, error) {
 	stream, err := c.cc.NewStream(ctx, &VierkantleService_ServiceDesc.Streams[2], "/nl.vierkantle.VierkantleService/TeamStream", opts...)
 	if err != nil {
@@ -244,6 +294,11 @@ type VierkantleServiceServer interface {
 	SeedBoard(*SeedBoardRequest, VierkantleService_SeedBoardServer) error
 	FillInBoard(*FillInBoardRequest, VierkantleService_FillInBoardServer) error
 	MarkWordType(context.Context, *MarkWordTypeRequest) (*MarkWordTypeResponse, error)
+	AddBoardToQueue(context.Context, *AddBoardToQueueRequest) (*AddBoardToQueueResponse, error)
+	ListBoardQueue(context.Context, *ListBoardQueueRequest) (*ListBoardQueueResponse, error)
+	GetBoardFromQueue(context.Context, *GetBoardFromQueueRequest) (*GetBoardFromQueueResponse, error)
+	UpdateBoardInQueue(context.Context, *UpdateBoardInQueueRequest) (*UpdateBoardInQueueResponse, error)
+	RemoveBoardsFromQueue(context.Context, *RemoveBoardsFromQueueRequest) (*RemoveBoardsFromQueueResponse, error)
 	TeamStream(VierkantleService_TeamStreamServer) error
 }
 
@@ -286,6 +341,21 @@ func (UnimplementedVierkantleServiceServer) FillInBoard(*FillInBoardRequest, Vie
 }
 func (UnimplementedVierkantleServiceServer) MarkWordType(context.Context, *MarkWordTypeRequest) (*MarkWordTypeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MarkWordType not implemented")
+}
+func (UnimplementedVierkantleServiceServer) AddBoardToQueue(context.Context, *AddBoardToQueueRequest) (*AddBoardToQueueResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddBoardToQueue not implemented")
+}
+func (UnimplementedVierkantleServiceServer) ListBoardQueue(context.Context, *ListBoardQueueRequest) (*ListBoardQueueResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBoardQueue not implemented")
+}
+func (UnimplementedVierkantleServiceServer) GetBoardFromQueue(context.Context, *GetBoardFromQueueRequest) (*GetBoardFromQueueResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBoardFromQueue not implemented")
+}
+func (UnimplementedVierkantleServiceServer) UpdateBoardInQueue(context.Context, *UpdateBoardInQueueRequest) (*UpdateBoardInQueueResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateBoardInQueue not implemented")
+}
+func (UnimplementedVierkantleServiceServer) RemoveBoardsFromQueue(context.Context, *RemoveBoardsFromQueueRequest) (*RemoveBoardsFromQueueResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveBoardsFromQueue not implemented")
 }
 func (UnimplementedVierkantleServiceServer) TeamStream(VierkantleService_TeamStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method TeamStream not implemented")
@@ -524,6 +594,96 @@ func _VierkantleService_MarkWordType_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VierkantleService_AddBoardToQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddBoardToQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).AddBoardToQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/AddBoardToQueue",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).AddBoardToQueue(ctx, req.(*AddBoardToQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VierkantleService_ListBoardQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBoardQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).ListBoardQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/ListBoardQueue",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).ListBoardQueue(ctx, req.(*ListBoardQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VierkantleService_GetBoardFromQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBoardFromQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).GetBoardFromQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/GetBoardFromQueue",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).GetBoardFromQueue(ctx, req.(*GetBoardFromQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VierkantleService_UpdateBoardInQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBoardInQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).UpdateBoardInQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/UpdateBoardInQueue",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).UpdateBoardInQueue(ctx, req.(*UpdateBoardInQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VierkantleService_RemoveBoardsFromQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveBoardsFromQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).RemoveBoardsFromQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/RemoveBoardsFromQueue",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).RemoveBoardsFromQueue(ctx, req.(*RemoveBoardsFromQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _VierkantleService_TeamStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	return srv.(VierkantleServiceServer).TeamStream(&vierkantleServiceTeamStreamServer{stream})
 }
@@ -596,6 +756,26 @@ var VierkantleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MarkWordType",
 			Handler:    _VierkantleService_MarkWordType_Handler,
+		},
+		{
+			MethodName: "AddBoardToQueue",
+			Handler:    _VierkantleService_AddBoardToQueue_Handler,
+		},
+		{
+			MethodName: "ListBoardQueue",
+			Handler:    _VierkantleService_ListBoardQueue_Handler,
+		},
+		{
+			MethodName: "GetBoardFromQueue",
+			Handler:    _VierkantleService_GetBoardFromQueue_Handler,
+		},
+		{
+			MethodName: "UpdateBoardInQueue",
+			Handler:    _VierkantleService_UpdateBoardInQueue_Handler,
+		},
+		{
+			MethodName: "RemoveBoardsFromQueue",
+			Handler:    _VierkantleService_RemoveBoardsFromQueue_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
