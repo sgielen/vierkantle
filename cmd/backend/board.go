@@ -18,6 +18,29 @@ import (
 
 var NoBoardsPresent = status.Error(codes.NotFound, "no boards present")
 
+func (s *vierkantleService) getNewestBoard() (string, []byte, error) {
+	files, err := os.ReadDir(s.boardDir)
+	if err != nil {
+		return "", nil, NoBoardsPresent
+	}
+
+	// ReadDir returns sorted files, so we simply return the last .json file
+	for i := len(files) - 1; i >= 0; i-- {
+		name := files[i].Name()
+		if !strings.HasSuffix(name, ".json") {
+			continue
+		}
+		bytes, err := os.ReadFile(filepath.Join(s.boardDir, name))
+		if err != nil {
+			s.log.Printf("failed to read board %s, skipping: %v", name, err)
+			continue
+		}
+		return name[0 : len(name)-5], bytes, nil
+	}
+
+	return "", nil, NoBoardsPresent
+}
+
 func (s *vierkantleService) GetBoard(ctx context.Context, req *pb.GetBoardRequest) (*pb.GetBoardResponse, error) {
 	if req.TimezoneOffsetMinutes < -24*60 || req.TimezoneOffsetMinutes > 24*60 {
 		return nil, status.Error(codes.InvalidArgument, "invalid timezone offset")
@@ -36,29 +59,11 @@ func (s *vierkantleService) GetBoard(ctx context.Context, req *pb.GetBoardReques
 		}, nil
 	}
 
-	files, err := os.ReadDir(s.boardDir)
-	if err != nil {
-		return nil, NoBoardsPresent
-	}
-
-	// ReadDir returns sorted files, so we simply return the last .json file
-	for i := len(files) - 1; i >= 0; i-- {
-		name := files[i].Name()
-		if !strings.HasSuffix(name, ".json") {
-			continue
-		}
-		bytes, err := os.ReadFile(filepath.Join(s.boardDir, name))
-		if err != nil {
-			s.log.Printf("failed to read board %s, skipping: %v", name, err)
-			continue
-		}
-		return &pb.GetBoardResponse{
-			Board: bytes,
-			Name:  name[0 : len(name)-5],
-		}, nil
-	}
-
-	return nil, NoBoardsPresent
+	newestBoard, bytes, err := s.getNewestBoard()
+	return &pb.GetBoardResponse{
+		Board: bytes,
+		Name:  newestBoard,
+	}, nil
 }
 
 func (s *vierkantleService) getDictionary() (dictionary.RWPrefixDictionary, error) {

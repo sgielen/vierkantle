@@ -43,6 +43,23 @@ func (s *vierkantleService) AddBoardToQueue(ctx context.Context, req *pb.AddBoar
 	return &res, nil
 }
 
+func (s *vierkantleService) GetNewestBoard(ctx context.Context, req *pb.GetNewestBoardRequest) (*pb.GetNewestBoardResponse, error) {
+	var res pb.GetNewestBoardResponse
+	if err := database.RunROTransaction(ctx, pgx.RepeatableRead, func(q *gendb.Queries) error {
+		res.Reset()
+		boards, err := q.ListBoardQueue(ctx)
+		if err != nil {
+			return err
+		}
+		res.BoardsInQueue = int64(len(boards))
+		res.LastBoardName, _, _ = s.getNewestBoard()
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
 func (s *vierkantleService) ListBoardQueue(ctx context.Context, req *pb.ListBoardQueueRequest) (*pb.ListBoardQueueResponse, error) {
 	ctx, err := grpcWebAuth(ctx)
 	if err != nil {

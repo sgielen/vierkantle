@@ -31,6 +31,7 @@ type VierkantleServiceClient interface {
 	SeedBoard(ctx context.Context, in *SeedBoardRequest, opts ...grpc.CallOption) (VierkantleService_SeedBoardClient, error)
 	FillInBoard(ctx context.Context, in *FillInBoardRequest, opts ...grpc.CallOption) (VierkantleService_FillInBoardClient, error)
 	MarkWordType(ctx context.Context, in *MarkWordTypeRequest, opts ...grpc.CallOption) (*MarkWordTypeResponse, error)
+	GetNewestBoard(ctx context.Context, in *GetNewestBoardRequest, opts ...grpc.CallOption) (*GetNewestBoardResponse, error)
 	AddBoardToQueue(ctx context.Context, in *AddBoardToQueueRequest, opts ...grpc.CallOption) (*AddBoardToQueueResponse, error)
 	ListBoardQueue(ctx context.Context, in *ListBoardQueueRequest, opts ...grpc.CallOption) (*ListBoardQueueResponse, error)
 	GetBoardFromQueue(ctx context.Context, in *GetBoardFromQueueRequest, opts ...grpc.CallOption) (*GetBoardFromQueueResponse, error)
@@ -201,6 +202,15 @@ func (c *vierkantleServiceClient) MarkWordType(ctx context.Context, in *MarkWord
 	return out, nil
 }
 
+func (c *vierkantleServiceClient) GetNewestBoard(ctx context.Context, in *GetNewestBoardRequest, opts ...grpc.CallOption) (*GetNewestBoardResponse, error) {
+	out := new(GetNewestBoardResponse)
+	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/GetNewestBoard", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *vierkantleServiceClient) AddBoardToQueue(ctx context.Context, in *AddBoardToQueueRequest, opts ...grpc.CallOption) (*AddBoardToQueueResponse, error) {
 	out := new(AddBoardToQueueResponse)
 	err := c.cc.Invoke(ctx, "/nl.vierkantle.VierkantleService/AddBoardToQueue", in, out, opts...)
@@ -294,6 +304,7 @@ type VierkantleServiceServer interface {
 	SeedBoard(*SeedBoardRequest, VierkantleService_SeedBoardServer) error
 	FillInBoard(*FillInBoardRequest, VierkantleService_FillInBoardServer) error
 	MarkWordType(context.Context, *MarkWordTypeRequest) (*MarkWordTypeResponse, error)
+	GetNewestBoard(context.Context, *GetNewestBoardRequest) (*GetNewestBoardResponse, error)
 	AddBoardToQueue(context.Context, *AddBoardToQueueRequest) (*AddBoardToQueueResponse, error)
 	ListBoardQueue(context.Context, *ListBoardQueueRequest) (*ListBoardQueueResponse, error)
 	GetBoardFromQueue(context.Context, *GetBoardFromQueueRequest) (*GetBoardFromQueueResponse, error)
@@ -341,6 +352,9 @@ func (UnimplementedVierkantleServiceServer) FillInBoard(*FillInBoardRequest, Vie
 }
 func (UnimplementedVierkantleServiceServer) MarkWordType(context.Context, *MarkWordTypeRequest) (*MarkWordTypeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MarkWordType not implemented")
+}
+func (UnimplementedVierkantleServiceServer) GetNewestBoard(context.Context, *GetNewestBoardRequest) (*GetNewestBoardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetNewestBoard not implemented")
 }
 func (UnimplementedVierkantleServiceServer) AddBoardToQueue(context.Context, *AddBoardToQueueRequest) (*AddBoardToQueueResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddBoardToQueue not implemented")
@@ -594,6 +608,24 @@ func _VierkantleService_MarkWordType_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VierkantleService_GetNewestBoard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNewestBoardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VierkantleServiceServer).GetNewestBoard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/nl.vierkantle.VierkantleService/GetNewestBoard",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VierkantleServiceServer).GetNewestBoard(ctx, req.(*GetNewestBoardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _VierkantleService_AddBoardToQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddBoardToQueueRequest)
 	if err := dec(in); err != nil {
@@ -756,6 +788,10 @@ var VierkantleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MarkWordType",
 			Handler:    _VierkantleService_MarkWordType_Handler,
+		},
+		{
+			MethodName: "GetNewestBoard",
+			Handler:    _VierkantleService_GetNewestBoard_Handler,
 		},
 		{
 			MethodName: "AddBoardToQueue",

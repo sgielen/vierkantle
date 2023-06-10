@@ -134,6 +134,14 @@ export interface MarkWordTypeRequest {
 export interface MarkWordTypeResponse {
 }
 
+export interface GetNewestBoardRequest {
+}
+
+export interface GetNewestBoardResponse {
+  lastBoardName: string;
+  boardsInQueue: number;
+}
+
 export interface AddBoardToQueueRequest {
   boardName: string;
   board: Uint8Array;
@@ -1371,6 +1379,80 @@ export const MarkWordTypeResponse = {
   },
 };
 
+function createBaseGetNewestBoardRequest(): GetNewestBoardRequest {
+  return {};
+}
+
+export const GetNewestBoardRequest = {
+  encode(_: GetNewestBoardRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetNewestBoardRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetNewestBoardRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(_: DeepPartial<GetNewestBoardRequest>): GetNewestBoardRequest {
+    const message = createBaseGetNewestBoardRequest();
+    return message;
+  },
+};
+
+function createBaseGetNewestBoardResponse(): GetNewestBoardResponse {
+  return { lastBoardName: "", boardsInQueue: 0 };
+}
+
+export const GetNewestBoardResponse = {
+  encode(message: GetNewestBoardResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.lastBoardName !== "") {
+      writer.uint32(10).string(message.lastBoardName);
+    }
+    if (message.boardsInQueue !== 0) {
+      writer.uint32(16).int64(message.boardsInQueue);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetNewestBoardResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetNewestBoardResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.lastBoardName = reader.string();
+          break;
+        case 2:
+          message.boardsInQueue = longToNumber(reader.int64() as Long);
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromPartial(object: DeepPartial<GetNewestBoardResponse>): GetNewestBoardResponse {
+    const message = createBaseGetNewestBoardResponse();
+    message.lastBoardName = object.lastBoardName ?? "";
+    message.boardsInQueue = object.boardsInQueue ?? 0;
+    return message;
+  },
+};
+
 function createBaseAddBoardToQueueRequest(): AddBoardToQueueRequest {
   return { boardName: "", board: new Uint8Array() };
 }
@@ -2334,6 +2416,14 @@ export const VierkantleServiceDefinition = {
       responseStream: false,
       options: {},
     },
+    getNewestBoard: {
+      name: "GetNewestBoard",
+      requestType: GetNewestBoardRequest,
+      requestStream: false,
+      responseType: GetNewestBoardResponse,
+      responseStream: false,
+      options: {},
+    },
     addBoardToQueue: {
       name: "AddBoardToQueue",
       requestType: AddBoardToQueueRequest,
@@ -2420,6 +2510,10 @@ export interface VierkantleServiceImplementation<CallContextExt = {}> {
     request: MarkWordTypeRequest,
     context: CallContext & CallContextExt,
   ): Promise<DeepPartial<MarkWordTypeResponse>>;
+  getNewestBoard(
+    request: GetNewestBoardRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<GetNewestBoardResponse>>;
   addBoardToQueue(
     request: AddBoardToQueueRequest,
     context: CallContext & CallContextExt,
@@ -2481,6 +2575,10 @@ export interface VierkantleServiceClient<CallOptionsExt = {}> {
     request: DeepPartial<MarkWordTypeRequest>,
     options?: CallOptions & CallOptionsExt,
   ): Promise<MarkWordTypeResponse>;
+  getNewestBoard(
+    request: DeepPartial<GetNewestBoardRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<GetNewestBoardResponse>;
   addBoardToQueue(
     request: DeepPartial<AddBoardToQueueRequest>,
     options?: CallOptions & CallOptionsExt,

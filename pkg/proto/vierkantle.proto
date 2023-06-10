@@ -23,6 +23,7 @@ service VierkantleService {
   rpc SeedBoard(SeedBoardRequest) returns (stream SeedBoardResponse) {}
   rpc FillInBoard(FillInBoardRequest) returns (stream FillInBoardResponse) {}
   rpc MarkWordType(MarkWordTypeRequest) returns (MarkWordTypeResponse) {}
+  rpc GetNewestBoard(GetNewestBoardRequest) returns (GetNewestBoardResponse) {}
   rpc AddBoardToQueue(AddBoardToQueueRequest) returns (AddBoardToQueueResponse) {}
   rpc ListBoardQueue(ListBoardQueueRequest) returns (ListBoardQueueResponse) {}
   rpc GetBoardFromQueue(GetBoardFromQueueRequest) returns (GetBoardFromQueueResponse) {}
@@ -151,6 +152,13 @@ message MarkWordTypeRequest {
 }
 
 message MarkWordTypeResponse {}
+
+message GetNewestBoardRequest {}
+
+message GetNewestBoardResponse {
+  string last_board_name = 1;
+  int64 boards_in_queue = 2;
+}
 
 message AddBoardToQueueRequest {
   string board_name = 1;

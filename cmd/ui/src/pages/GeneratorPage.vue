@@ -33,8 +33,12 @@
             <q-btn @click="download" color="primary">Download bord</q-btn>
             <q-btn @click="addToQueue" color="primary">Voeg bord aan wachtrij toe</q-btn>
             <q-btn @click="chooseFile" color="primary">Upload bord</q-btn>
-            <q-btn @click="queueOpen = true" color="primary" v-if="whoami?.admin">Open wachtrij</q-btn>
             <q-input filled type="file" ref="qFile" v-model="file" v-show="false" />
+            <q-btn @click="queueOpen = true" color="primary" v-if="whoami?.admin">Open wachtrij</q-btn>
+            <p v-if="boardStats">
+              Laatste bord op dit moment: {{ boardStats.lastBoardName }}<br/>
+              Borden in wachtrij: {{ boardStats.boardsInQueue }}
+            </p>
           </div>
           <q-separator class="q-ma-sm" />
           <div class="row q-gutter-sm q-ma-sm">
@@ -118,7 +122,7 @@ import { Board } from 'src/components/models';
 import { onMounted, ref, computed, watch } from 'vue';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createChannel, createClient } from 'nice-grpc-web';
-import { VierkantleServiceDefinition, VierkantleServiceClient, GetBoardFromQueueResponse } from '../services/vierkantle';
+import { VierkantleServiceDefinition, VierkantleServiceClient, GetBoardFromQueueResponse, GetNewestBoardResponse } from '../services/vierkantle';
 import WordList from 'src/components/WordList.vue';
 import LabelAutofit from 'src/components/LabelAutofit.vue';
 import { QInput } from 'quasar';
@@ -149,7 +153,18 @@ onMounted(async () => {
   if (!myName.value && username.value) {
     myName.value = username.value;
   }
-})
+
+  await updateStats();
+});
+
+const boardStats = ref<GetNewestBoardResponse>();
+async function updateStats() {
+  try {
+    boardStats.value = await client.getNewestBoard({});
+  } catch(e) {
+    error.value = errorToString(e);
+  }
+}
 
 function defaultBoard(): Board {
   const b: Board = {
@@ -346,6 +361,7 @@ async function addToQueue() {
     })
     queueId.value = response.id;
     queuedOpen.value = true;
+    await updateStats();
   } catch(e) {
     error.value = errorToString(e);
   }
