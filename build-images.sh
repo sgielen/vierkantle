@@ -38,6 +38,7 @@ docker build . \
 if [ "$PUSH" = "1" ]; then
 	docker push "${IMAGE_BASENAME}dbmigrate:latest-${GIT_REF_NAME}"
 fi
+popd
 
 for gobinary in backend; do
 	docker build . \
