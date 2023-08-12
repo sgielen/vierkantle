@@ -109,7 +109,7 @@
   <q-dialog v-model="queueOpen">
     <BoardQueue
       :backend="backendAddress"
-      :currentBoard="boardJson"
+      :currentBoardFn="() => boardJson()"
       @open="openFromQueue"
     />
   </q-dialog>
@@ -271,7 +271,7 @@ async function fillIn() {
   error.value = "";
   try {
     const responses = client.fillInBoard({
-      board: boardJson.value,
+      board: boardJson(),
       attempts: 10000,
     }, { signal: newUniqueCall() });
     for await (const response of responses) {
@@ -297,7 +297,7 @@ async function renewWords() {
   error.value = "";
   try {
     const boardResponse = await client.wordsForBoard({
-      board: boardJson.value,
+      board: boardJson(),
     }, { signal: newUniqueCall() });
     replaceBoardFromApi(boardResponse.board);
   } catch(e) {
@@ -325,13 +325,12 @@ async function setWordBonus(word: string, bonus: boolean) {
   }
 }
 
-const boardJson = ref(new Uint8Array);
-watch(board, () => {
-  boardJson.value = new TextEncoder().encode(JSON.stringify(board.value, null, 0));
-}, { deep: true });
+function boardJson() {
+  return new TextEncoder().encode(JSON.stringify(board.value, null, 0));
+}
 
 function download() {
-  const file = new File([boardJson.value], boardFilename.value);
+  const file = new File([boardJson()], boardFilename.value);
 
   const link = document.createElement("a");
   link.style.display = "none";
@@ -357,7 +356,7 @@ async function addToQueue() {
     error.value = "";
     const response = await client.addBoardToQueue({
       boardName: boardName.value,
-      board: boardJson.value,
+      board: boardJson(),
     })
     queueId.value = response.id;
     queuedOpen.value = true;

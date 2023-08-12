@@ -50,7 +50,7 @@ import { Writer } from '@transcend-io/conflux';
 
 const props = defineProps<{
   backend: string,
-  currentBoard: Uint8Array,
+  currentBoardFn: () => Uint8Array,
 }>();
 
 const emit = defineEmits<{
@@ -112,7 +112,7 @@ async function replace() {
     await client.updateBoardInQueue({
       id: selected.value[0].id,
       boardName: newName.value || selected.value[0].boardName,
-      board: props.currentBoard,
+      board: props.currentBoardFn(),
     });
     await listBoardQueue();
   } catch(e) {
@@ -142,7 +142,6 @@ async function downloadSelection() {
       error.value = "";
       const writer = writable.getWriter();
 
-      console.log("here");
       for(let i = 0; i < selected.value.length; ++i) {
         const board = await client.getBoardFromQueue({ id: selected.value[i].id });
         writer.write({
@@ -151,13 +150,10 @@ async function downloadSelection() {
           stream: () => new Response(board.board).body!,
         });
       }
-      console.log("here2");
       const response = new Response(readable);
       const [blob] = await Promise.all([response.blob(), writer.close()]);
-      console.log("here3: ", blob);
 
       file = new File([blob], "boards.zip");
-      console.log("file: ", file);
     } catch(e) {
       console.log(e);
       error.value = errorToString(e);
