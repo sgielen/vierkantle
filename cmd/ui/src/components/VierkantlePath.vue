@@ -52,7 +52,13 @@ watchEffect(() => {
   ctx.fillStyle = 'rgb(255, 0, 0)';
   ctx.strokeStyle = 'rgb(255, 0, 0)';
   ctx.lineWidth = 10;
+  // Some browsers optimize ctx.ClearRect(0, 0, width, height) to swap
+  // the entire buffer with an empty one -- but then also have a bug
+  // where if you do this twice, the last buffer becomes visible again.
+  // I've seen this on some Android devices. So, instead, clear all
+  // but the last line, then clear the last line.
   ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value - 1);
+  ctx.clearRect(0, canvasHeight.value - 1, canvasWidth.value, 1);
   if (props.path.length == 0) {
     return;
   }
