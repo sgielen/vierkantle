@@ -100,6 +100,7 @@ export interface WordsForBoardRequest {
 
 export interface WordsForBoardResponse {
   board: Uint8Array;
+  score: number;
 }
 
 export interface SeedBoardRequest {
@@ -1065,13 +1066,16 @@ export const WordsForBoardRequest = {
 };
 
 function createBaseWordsForBoardResponse(): WordsForBoardResponse {
-  return { board: new Uint8Array() };
+  return { board: new Uint8Array(), score: 0 };
 }
 
 export const WordsForBoardResponse = {
   encode(message: WordsForBoardResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.board.length !== 0) {
       writer.uint32(10).bytes(message.board);
+    }
+    if (message.score !== 0) {
+      writer.uint32(21).float(message.score);
     }
     return writer;
   },
@@ -1086,6 +1090,9 @@ export const WordsForBoardResponse = {
         case 1:
           message.board = reader.bytes();
           break;
+        case 2:
+          message.score = reader.float();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -1097,6 +1104,7 @@ export const WordsForBoardResponse = {
   fromPartial(object: DeepPartial<WordsForBoardResponse>): WordsForBoardResponse {
     const message = createBaseWordsForBoardResponse();
     message.board = object.board ?? new Uint8Array();
+    message.score = object.score ?? 0;
     return message;
   },
 };

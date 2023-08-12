@@ -120,6 +120,7 @@ message WordsForBoardRequest {
 
 message WordsForBoardResponse {
   bytes board = 1;
+  float score = 2;
 }
 
 message SeedBoardRequest {

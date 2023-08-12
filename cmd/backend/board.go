@@ -97,12 +97,14 @@ func (s *vierkantleService) WordsForBoard(ctx context.Context, req *pb.WordsForB
 		return nil, err
 	}
 	words := board.WordsInBoard(dict, 4)
+	score := board.ScoreBoard(words)
 	newBoard, err := board.PrintBoardJson(words)
 	if err != nil {
 		return nil, err
 	}
 	return &pb.WordsForBoardResponse{
 		Board: newBoard,
+		Score: float32(score),
 	}, nil
 }
 
