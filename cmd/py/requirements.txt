@@ -1,0 +1,9 @@
+certifi==2023.7.22
+charset-normalizer==3.2.0
+grpcio==1.57.0
+grpcio-tools==1.57.0
+idna==3.4
+protobuf==4.24.0
+pyease-grpc==1.6.1
+requests==2.31.0
+urllib3==2.0.4
