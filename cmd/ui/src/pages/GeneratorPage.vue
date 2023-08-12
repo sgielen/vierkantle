@@ -35,6 +35,8 @@
             <q-btn @click="chooseFile" color="primary">Upload bord</q-btn>
             <q-input filled type="file" ref="qFile" v-model="file" v-show="false" />
             <q-btn @click="queueOpen = true" color="primary" v-if="whoami?.admin">Open wachtrij</q-btn>
+          </div>
+          <div class="row q-gutter-sm q-ma-sm">
             <p v-if="boardStats">
               Laatste bord op dit moment: {{ boardStats.lastBoardName }}<br/>
               Borden in wachtrij: {{ boardStats.boardsInQueue }}
