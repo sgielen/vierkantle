@@ -1,4 +1,4 @@
-FROM golang:1.19.3-buster AS build
+FROM golang:1.21.0-bullseye AS build
 
 WORKDIR /app
 COPY go.mod ./
@@ -7,8 +7,9 @@ RUN go mod download
 
 COPY . .
 RUN cd cmd/backend && go build -o /backend
+RUN cd cmd/board && go build -o /board
 
-FROM debian:buster-20221114 AS base
+FROM debian:bullseye-20230919 AS base
 RUN apt-get update && apt-get --no-install-recommends install -y \
 	wget ca-certificates \
 	&& rm -rf /var/lib/apt/lists/*
@@ -20,5 +21,6 @@ FROM base AS backend
 COPY contrib/SUBTLEX-NL.cd-above2.txt /data/wordlist.txt
 COPY contrib/opentaal-wordlist/wordlist.txt /data/bonuslist.txt
 COPY --from=build /backend /
+COPY --from=build /board /bin
 USER nobody:nogroup
 ENTRYPOINT [ "/backend" ]

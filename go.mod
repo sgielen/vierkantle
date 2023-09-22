@@ -1,6 +1,6 @@
 module github.com/sgielen/vierkantle
 
-go 1.19
+go 1.21
 
 require (
 	github.com/Jille/trxwrap v0.0.0-20230424200650-4f1f2998bdc7

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"sort"
 	"strings"
 	"time"
 
@@ -132,4 +133,15 @@ func (b *Board) ScoreBoard(words []WordInBoard) float64 {
 		score += float64(numNormalWords) * 0.01
 	}
 	return score
+}
+
+func (b *Board) LongestWords(words []WordInBoard, num int) []string {
+	ws := make([]string, 0, len(words))
+	for _, w := range words {
+		ws = append(ws, w.Word)
+	}
+	sort.Slice(ws, func(i, j int) bool {
+		return len(ws[i]) > len(ws[j])
+	})
+	return ws[0:num]
 }

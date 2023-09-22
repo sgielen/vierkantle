@@ -2,6 +2,7 @@ package vierkantle
 
 import (
 	"encoding/json"
+	"os"
 
 	"github.com/sgielen/vierkantle/pkg/dictionary"
 )
@@ -43,6 +44,14 @@ func (b *Board) PrintBoardJson(words []WordInBoard) ([]byte, error) {
 		}
 	}
 	return json.Marshal(res)
+}
+
+func BoardFromFile(filename string) (*Board, []WordInBoard, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, nil, err
+	}
+	return BoardFromJson(data)
 }
 
 func BoardFromJson(data []byte) (*Board, []WordInBoard, error) {
