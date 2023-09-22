@@ -63,7 +63,7 @@ func (s *vierkantleService) GetBoard(ctx context.Context, req *pb.GetBoardReques
 	return &pb.GetBoardResponse{
 		Board: bytes,
 		Name:  newestBoard,
-	}, nil
+	}, err
 }
 
 func (s *vierkantleService) getDictionary() (dictionary.RWPrefixDictionary, error) {
