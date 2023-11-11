@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -41,6 +42,68 @@ func (s *vierkantleService) getNewestBoard() (string, []byte, error) {
 	return "", nil, NoBoardsPresent
 }
 
+func (s *vierkantleService) GetTodaysBoard(ctx context.Context, date string) (*pb.GetBoardResponse, error) {
+	bytes, err := os.ReadFile(s.GetBoardPath(date))
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetBoardResponse{
+		Board: bytes,
+		Name:  date,
+	}, nil
+}
+
+func (s *vierkantleService) GetBoardPath(date string) string {
+	return filepath.Join(s.boardDir, date+".json")
+}
+
+func (s *vierkantleService) GetEmergencyBoard() (string, error) {
+	// letters -> latest filename
+	boardMostRecentUse := map[string]string{}
+
+	if err := filepath.WalkDir(s.boardDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || !strings.HasSuffix(path, ".json") {
+			return nil
+		}
+		b, _, err := vierkantle.BoardFromFile(path)
+		if err != nil {
+			return err
+		}
+		letters := b.PrintBoard()
+		if currentMostRecentUse, ok := boardMostRecentUse[letters]; ok {
+			// Board was used before -- but earlier or later than this use?
+			if path > currentMostRecentUse {
+				boardMostRecentUse[letters] = path
+			}
+		} else {
+			boardMostRecentUse[letters] = path
+		}
+		return err
+	}); err != nil {
+		return "", err
+	}
+
+	var oldestBoard string
+	for _, path := range boardMostRecentUse {
+		if oldestBoard == "" {
+			oldestBoard = path
+		} else if path < oldestBoard {
+			oldestBoard = path
+		}
+	}
+
+	if oldestBoard == "" {
+		return "", fmt.Errorf("no boards to serve as emergency board")
+	}
+
+	oldestBoard = filepath.Base(oldestBoard)
+	oldestBoard, _ = strings.CutSuffix(oldestBoard, ".json")
+	return oldestBoard, nil
+}
+
 func (s *vierkantleService) GetBoard(ctx context.Context, req *pb.GetBoardRequest) (*pb.GetBoardResponse, error) {
 	if req.TimezoneOffsetMinutes < -24*60 || req.TimezoneOffsetMinutes > 24*60 {
 		return nil, status.Error(codes.InvalidArgument, "invalid timezone offset")
@@ -50,20 +113,46 @@ func (s *vierkantleService) GetBoard(ctx context.Context, req *pb.GetBoardReques
 	if date.Hour() < 12 {
 		date = date.Add(-time.Hour * 13)
 	}
-	todaysBoard := date.Format("2006-01-02")
-	bytes, err := os.ReadFile(filepath.Join(s.boardDir, todaysBoard+".json"))
+	today := date.Format("2006-01-02")
+	res, err := s.GetTodaysBoard(ctx, today)
 	if err == nil {
-		return &pb.GetBoardResponse{
-			Board: bytes,
-			Name:  todaysBoard,
-		}, nil
+		return res, nil
 	}
 
-	newestBoard, bytes, err := s.getNewestBoard()
-	return &pb.GetBoardResponse{
-		Board: bytes,
-		Name:  newestBoard,
-	}, err
+	// TODO: this mtx only works while the backend is single-process -- if the backend
+	// becomes redundant, we should switch to a database lock
+	s.emergencyBoardMtx.Lock()
+	defer s.emergencyBoardMtx.Unlock()
+
+	// Now that we have the lock, check again if there is a board for today
+	res, err = s.GetTodaysBoard(ctx, today)
+	if err == nil {
+		return res, nil
+	}
+
+	// If not, we now have the lock to copy an emergency board for today
+	emergencyBoard, err := s.GetEmergencyBoard()
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("Copying emergency board to today: %s", emergencyBoard)
+	bytes, err := os.ReadFile(s.GetBoardPath(emergencyBoard))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := os.WriteFile(s.GetBoardPath(today), bytes, 0644); err != nil {
+		return nil, err
+	}
+
+	res, err = s.GetTodaysBoard(ctx, today)
+	if err == nil {
+		return res, nil
+	}
+
+	err = fmt.Errorf("failed to serve todays board after writing emergency file: %w", err)
+	panic(err)
 }
 
 func (s *vierkantleService) getDictionary() (dictionary.RWPrefixDictionary, error) {

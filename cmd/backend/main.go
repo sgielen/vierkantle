@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -45,6 +46,8 @@ type vierkantleService struct {
 	wordLists         []string
 	bonusLists        []string
 	forceWordTypeList string
+
+	emergencyBoardMtx sync.Mutex
 }
 
 func main() {
