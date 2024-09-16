@@ -291,7 +291,7 @@ const dark = computed({
   },
 });
 
-const board_ = useStorage<Board | undefined>("board", undefined, undefined, { serializer: StorageSerializers.object });
+const board_ = useStorage<Board | null>("board", null, undefined, { serializer: StorageSerializers.object });
 const anonymousId = useStorage("anonymousId", Math.floor(Math.random() * 4294967295 /* UINT32_MAX */));
 const seconds = useStorage("seconds", 0);
 const enableSubmitScores = useStorage("enableSubmitScores", true);
