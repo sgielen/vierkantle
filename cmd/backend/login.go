@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -29,9 +30,13 @@ type contextKey string
 
 var vktJwtKey = contextKey("jwt")
 
-// TODO: make these flags or read from env
-var jwtKeyId = "1"
-var jwtSecret = []byte("746c2cbb43675102284ee4218e1492391ed222ab3743aba2f5002ea8d3c003f2")
+// TODO: remove support for the old JWT key/secret after 2024-09-23
+var oldJwtKeyId = "1"
+var oldJwtSecret = []byte("746c2cbb43675102284ee4218e1492391ed222ab3743aba2f5002ea8d3c003f2")
+
+var jwtKeyId = "2"
+var jwtSecret = flag.String("jwt_secret", "", "JWT secret to use for encrypting JWT cookies")
+
 var jwtExpiry = 4 * 7 * 24 * 3600 * time.Second /* 4 weeks */
 var cookieMaxAge = 4 * 7 * 24 * 3600            /* 4 weeks */
 var cookieSecure = false
@@ -62,12 +67,13 @@ func (s *vierkantleService) Whoami(ctx context.Context, req *pb.WhoamiRequest) (
 		admin = false
 	}
 	if err := SetCookie(ctx, userId, username); err != nil {
+		log.Printf("SetCookie failed: %+v", err)
 		return nil, err
 	}
 	return &pb.WhoamiResponse{
 		Username: username,
 		Admin:    admin,
-	}, err
+	}, nil
 }
 
 func (s *vierkantleService) StartLogin(ctx context.Context, req *pb.StartLoginRequest) (*pb.StartLoginResponse, error) {
@@ -236,11 +242,13 @@ func authenticateWithJwt(ctx context.Context, tokenString string) (context.Conte
 			return nil, status.Error(codes.Unauthenticated, "no key id")
 		} else if kidstr, ok := kid.(string); !ok {
 			return nil, status.Errorf(codes.Unauthenticated, "unexpected key id: %v", kid)
-		} else if kidstr != jwtKeyId {
+		} else if kidstr == oldJwtKeyId {
+			return oldJwtSecret, nil
+		} else if kidstr == jwtKeyId {
+			return []byte(*jwtSecret), nil
+		} else {
 			return nil, status.Errorf(codes.Unauthenticated, "unexpected key id: %s", kidstr)
 		}
-
-		return jwtSecret, nil
 	})
 	if errors.Is(err, jwt.ErrTokenExpired) {
 		return nil, ErrTokenExpired
@@ -303,9 +311,15 @@ func GetNewJwt(userid int64, username string) (string, error) {
 		"nbf":      time.Now().Unix(),
 		"exp":      time.Now().Add(jwtExpiry).Unix(),
 	})
-	token.Header["kid"] = jwtKeyId
 
-	return token.SignedString(jwtSecret)
+	if *jwtSecret == "" {
+		log.Printf("WARNING: No -jwt_secret passed, using old JWT secret")
+		token.Header["kid"] = oldJwtKeyId
+		return token.SignedString(oldJwtSecret)
+	} else {
+		token.Header["kid"] = jwtKeyId
+		return token.SignedString([]byte(*jwtSecret))
+	}
 }
 
 func SetCookie(ctx context.Context, userid int64, username string) error {
