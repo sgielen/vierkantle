@@ -30,12 +30,11 @@ type contextKey string
 
 var vktJwtKey = contextKey("jwt")
 
-// TODO: remove support for the old JWT key/secret after 2024-09-23
-var oldJwtKeyId = "1"
-var oldJwtSecret = []byte("746c2cbb43675102284ee4218e1492391ed222ab3743aba2f5002ea8d3c003f2")
-
 var jwtKeyId = "2"
-var jwtSecret = flag.String("jwt_secret", "", "JWT secret to use for encrypting JWT cookies")
+var defaultJwtSecret = "746c2cbb43675102284ee4218e1492391ed222ab3743aba2f5002ea8d3c003f2"
+
+// In production environments, -jwt_secret must always be passed.
+var jwtSecret = flag.String("jwt_secret", defaultJwtSecret, "JWT secret to use for encrypting JWT cookies")
 
 var jwtExpiry = 4 * 7 * 24 * 3600 * time.Second /* 4 weeks */
 var cookieMaxAge = 4 * 7 * 24 * 3600            /* 4 weeks */
@@ -242,8 +241,6 @@ func authenticateWithJwt(ctx context.Context, tokenString string) (context.Conte
 			return nil, status.Error(codes.Unauthenticated, "no key id")
 		} else if kidstr, ok := kid.(string); !ok {
 			return nil, status.Errorf(codes.Unauthenticated, "unexpected key id: %v", kid)
-		} else if kidstr == oldJwtKeyId {
-			return oldJwtSecret, nil
 		} else if kidstr == jwtKeyId {
 			return []byte(*jwtSecret), nil
 		} else {
@@ -313,13 +310,15 @@ func GetNewJwt(userid int64, username string) (string, error) {
 	})
 
 	if *jwtSecret == "" {
-		log.Printf("WARNING: No -jwt_secret passed, using old JWT secret")
-		token.Header["kid"] = oldJwtKeyId
-		return token.SignedString(oldJwtSecret)
-	} else {
-		token.Header["kid"] = jwtKeyId
-		return token.SignedString([]byte(*jwtSecret))
+		return "", fmt.Errorf("server misconfiguration - cannot log in")
 	}
+
+	if *jwtSecret == defaultJwtSecret {
+		log.Printf("no -jwt_secret set, using default - FIX THIS on production environments")
+	}
+
+	token.Header["kid"] = jwtKeyId
+	return token.SignedString([]byte(*jwtSecret))
 }
 
 func SetCookie(ctx context.Context, userid int64, username string) error {
