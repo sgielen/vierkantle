@@ -56,13 +56,10 @@ func main() {
 	flag.Parse()
 
 	database.Init()
+	email.Init()
 
 	if b, err := os.Stat(*boards); err != nil || !b.IsDir() {
 		log.Printf("Warning: failed to stat boards directory %s, won't offer boards to clients", *boards)
-	}
-
-	if email.GetSendgridApiKey() == "" {
-		log.Printf("Warning: no Sendgrid API key found, will be unable to send e-mail")
 	}
 
 	// Set up a gRPC server with interceptors for e.g. authentication and panic prevention
